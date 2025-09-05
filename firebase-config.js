@@ -17,16 +17,25 @@ function getFirebaseConfig() {
         console.log('GitHub Pages 환경에서 실행 중 - 하드코딩된 설정 사용');
     }
     
-    // .env 파일의 환경변수 사용 (window.env가 주입된 경우)
-    // 또는 하드코딩된 값 사용 (GitHub Pages)
-    return {
-        apiKey: (window.env && window.env.VITE_API_KEY),
-        authDomain: (window.env && window.env.VITE_AUTH_DOMAIN),
-        projectId: (window.env && window.env.VITE_PROJECT_ID),
-        storageBucket: (window.env && window.env.VITE_STORAGE_BUCKET),
-        messagingSenderId: (window.env && window.env.VITE_MESSAGING_SENDER_ID),
-        appId: (window.env && window.env.VITE_APP_ID)
-    };
+    // .env 파일의 환경변수 사용 (로컬 개발)
+    // 또는 GitHub Actions에서 생성된 config.js 사용 (GitHub Pages)
+    if (window.env) {
+        // 로컬 개발 환경: .env 파일 사용
+        return {
+            apiKey: window.env.VITE_API_KEY,
+            authDomain: window.env.VITE_AUTH_DOMAIN,
+            projectId: window.env.VITE_PROJECT_ID,
+            storageBucket: window.env.VITE_STORAGE_BUCKET,
+            messagingSenderId: window.env.VITE_MESSAGING_SENDER_ID,
+            appId: window.env.VITE_APP_ID
+        };
+    } else if (window.firebaseConfig) {
+        // GitHub Pages: GitHub Actions에서 생성된 config.js 사용
+        return window.firebaseConfig;
+    } else {
+        // 환경변수가 없는 경우 오류
+        throw new Error('Firebase 설정을 찾을 수 없습니다. 환경변수를 확인해주세요.');
+    }
 }
 
 // Firebase 설정 가져오기 (환경변수 로드 후 실행)

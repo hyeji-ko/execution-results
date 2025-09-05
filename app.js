@@ -265,20 +265,58 @@ class SeminarPlanningApp {
         try {
             // Firebase에서 저장된 데이터 불러오기
             const result = await loadData();
-            if (result.success) {
+            if (result.success && result.data) {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
                 this.populateForm();
                 console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
-                console.log('저장된 데이터가 없습니다:', result.message);
+                console.log('저장된 데이터가 없습니다. 기본값으로 초기화합니다.');
+                // 기본 데이터로 초기화
+                this.currentData = {
+                    session: '',
+                    objective: '',
+                    datetime: '',
+                    location: '',
+                    attendees: '',
+                    timeSchedule: [],
+                    attendeeList: []
+                };
+                this.currentDocumentId = null;
+                this.populateForm();
             }
         } catch (error) {
             console.error('초기 데이터 로드 오류:', error);
+            // 오류 발생 시에도 기본값으로 초기화
+            this.currentData = {
+                session: '',
+                objective: '',
+                datetime: '',
+                location: '',
+                attendees: '',
+                timeSchedule: [],
+                attendeeList: []
+            };
+            this.currentDocumentId = null;
+            this.populateForm();
         }
     }
 
     populateForm() {
+        // currentData가 null 또는 undefined인 경우 처리
+        if (!this.currentData) {
+            console.warn('currentData가 없습니다. 기본값으로 초기화합니다.');
+            this.currentData = {
+                session: '',
+                objective: '',
+                datetime: '',
+                location: '',
+                attendees: '',
+                timeSchedule: [],
+                attendeeList: []
+            };
+        }
+
         // 기본 정보 채우기
         Object.keys(this.currentData).forEach(key => {
             if (key === 'session') {
@@ -300,6 +338,23 @@ class SeminarPlanningApp {
     }
 
     addDefaultRows() {
+        // currentData와 timeSchedule이 null 또는 undefined인 경우 처리
+        if (!this.currentData) {
+            this.currentData = {
+                session: '',
+                objective: '',
+                datetime: '',
+                location: '',
+                attendees: '',
+                timeSchedule: [],
+                attendeeList: []
+            };
+        }
+        
+        if (!this.currentData.timeSchedule) {
+            this.currentData.timeSchedule = [];
+        }
+
         // 기본 시간 계획 행 추가 (직접 생성, addTimeRow() 호출하지 않음)
         if (this.currentData.timeSchedule.length === 0) {
             const tbody = document.getElementById('timeTableBody');
