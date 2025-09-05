@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Simple Deploy
 
 on:
   push:
@@ -12,11 +12,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Create config.js with environment variables
+    - name: Create config.js
       run: |
-        # 환경변수를 config.js 파일로 생성
         cat > config.js << EOF
-        // GitHub Actions에서 생성된 설정 파일
         window.firebaseConfig = {
           apiKey: "${{ secrets.FIREBASE_API_KEY }}",
           authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
@@ -27,9 +25,10 @@ jobs:
         };
         EOF
         
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./
-        # gh-pages 브랜치 사용 (기본값)
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add config.js
+        git commit -m "Update config.js with secrets" || exit 0
+        git push
