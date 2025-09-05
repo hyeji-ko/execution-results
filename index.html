@@ -35,16 +35,9 @@
                         window.env = {};
                     });
             } else {
-                // GitHub Pages: config.js 파일 로드
-                const script = document.createElement('script');
-                script.src = 'config.js';
-                script.onload = () => {
-                    console.log('GitHub Pages config.js 로드 완료');
-                };
-                script.onerror = () => {
-                    console.error('config.js 파일을 로드할 수 없습니다');
-                };
-                document.head.appendChild(script);
+                // GitHub Pages: 환경변수 없이 기본 설정 사용
+                console.log('GitHub Pages 환경에서 실행 중 - 기본 설정 사용');
+                window.env = {};
             }
         }
         

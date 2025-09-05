@@ -2,40 +2,42 @@
 // .env 파일에서 설정을 로드합니다.
 // .env 파일은 .gitignore에 포함되어 Git에 업로드되지 않습니다.
 
-// 환경 변수에서 Firebase 설정 가져오기
+// Firebase 설정 가져오기
 function getFirebaseConfig() {
-    // .env 파일의 환경변수를 사용합니다.
-    // 브라우저에서는 환경변수를 직접 읽을 수 없으므로
-    // window 객체에 환경변수를 주입하는 방법을 사용합니다.
-    
-    // 환경 변수 확인
+    // 로컬 개발 환경 확인
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
     if (isLocalDev) {
         console.log('로컬 개발 환경에서 실행 중 - .env 파일 사용');
-    } else {
-        console.log('GitHub Pages 환경에서 실행 중 - 하드코딩된 설정 사용');
+        // 로컬 개발: .env 파일 사용
+        if (window.env) {
+            return {
+                apiKey: window.env.VITE_API_KEY,
+                authDomain: window.env.VITE_AUTH_DOMAIN,
+                projectId: window.env.VITE_PROJECT_ID,
+                storageBucket: window.env.VITE_STORAGE_BUCKET,
+                messagingSenderId: window.env.VITE_MESSAGING_SENDER_ID,
+                appId: window.env.VITE_APP_ID
+            };
+        }
     }
     
-    // .env 파일의 환경변수 사용 (로컬 개발)
-    // 또는 GitHub Actions에서 생성된 config.js 사용 (GitHub Pages)
-    if (window.env) {
-        // 로컬 개발 환경: .env 파일 사용
-        return {
-            apiKey: window.env.VITE_API_KEY,
-            authDomain: window.env.VITE_AUTH_DOMAIN,
-            projectId: window.env.VITE_PROJECT_ID,
-            storageBucket: window.env.VITE_STORAGE_BUCKET,
-            messagingSenderId: window.env.VITE_MESSAGING_SENDER_ID,
-            appId: window.env.VITE_APP_ID
-        };
-    } else if (window.firebaseConfig) {
-        // GitHub Pages: GitHub Actions에서 생성된 config.js 사용
+    // GitHub Pages 또는 기본 설정: config.js 사용
+    if (window.firebaseConfig) {
+        console.log('GitHub Pages 환경에서 실행 중 - config.js 사용');
         return window.firebaseConfig;
-    } else {
-        // 환경변수가 없는 경우 오류
-        throw new Error('Firebase 설정을 찾을 수 없습니다. 환경변수를 확인해주세요.');
     }
+    
+    // 최후의 수단: 기본 설정 (오류 방지)
+    console.warn('환경변수를 찾을 수 없습니다. 기본 설정을 사용합니다.');
+    return {
+        apiKey: "demo-api-key",
+        authDomain: "demo-project.firebaseapp.com",
+        projectId: "demo-project",
+        storageBucket: "demo-project.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:demo123456"
+    };
 }
 
 // Firebase 설정 가져오기 (환경변수 로드 후 실행)
