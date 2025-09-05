@@ -1,5 +1,77 @@
 // 전사 신기술 세미나 실행계획 웹앱 메인 JavaScript
 
+// 전역 변수 설정
+let useLocalStorage = true; // 기본적으로 로컬 스토리지 사용
+
+// Firebase 데이터베이스 함수들
+async function loadData() {
+    try {
+        if (useLocalStorage) {
+            // 로컬 스토리지에서 데이터 로드
+            const data = localStorage.getItem('seminarPlans');
+            if (data) {
+                const parsedData = JSON.parse(data);
+                return { success: true, data: parsedData, id: 'local' };
+            }
+            return { success: true, data: null, id: null };
+        } else {
+            // Firebase에서 데이터 로드
+            if (typeof window.db !== 'undefined') {
+                const snapshot = await window.db.collection('seminarPlans').get();
+                const data = [];
+                snapshot.forEach(doc => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
+                return { success: true, data: data, id: data.length > 0 ? data[0].id : null };
+            }
+            throw new Error('Firebase가 초기화되지 않았습니다.');
+        }
+    } catch (error) {
+        console.error('데이터 로드 오류:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function saveData(data) {
+    try {
+        if (useLocalStorage) {
+            // 로컬 스토리지에 저장
+            localStorage.setItem('seminarPlans', JSON.stringify(data));
+            return { success: true, id: 'local' };
+        } else {
+            // Firebase에 저장
+            if (typeof window.db !== 'undefined') {
+                const docRef = await window.db.collection('seminarPlans').add(data);
+                return { success: true, id: docRef.id };
+            }
+            throw new Error('Firebase가 초기화되지 않았습니다.');
+        }
+    } catch (error) {
+        console.error('데이터 저장 오류:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function updateData(id, data) {
+    try {
+        if (useLocalStorage) {
+            // 로컬 스토리지 업데이트
+            localStorage.setItem('seminarPlans', JSON.stringify(data));
+            return { success: true, id: id };
+        } else {
+            // Firebase 업데이트
+            if (typeof window.db !== 'undefined') {
+                await window.db.collection('seminarPlans').doc(id).update(data);
+                return { success: true, id: id };
+            }
+            throw new Error('Firebase가 초기화되지 않았습니다.');
+        }
+    } catch (error) {
+        console.error('데이터 업데이트 오류:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 class SeminarPlanningApp {
     constructor() {
         this.currentData = {
@@ -536,8 +608,15 @@ class SeminarPlanningApp {
             if (field === 'department') {
                 // 현재 활성화된 요소 찾기
                 const activeElement = document.activeElement;
-                const selectElement = activeElement.tagName === 'SELECT' ? activeElement : 
-                                    activeElement.closest('tr').querySelector('select[data-field="department"]');
+                let selectElement = null;
+                
+                if (activeElement && activeElement.tagName === 'SELECT') {
+                    selectElement = activeElement;
+                } else if (activeElement && activeElement.closest('tr')) {
+                    const row = activeElement.closest('tr');
+                    selectElement = row.querySelector('select[data-field="department"]');
+                }
+                
                 const inputElement = document.getElementById(`departmentInput_${index}`);
                 
                 if (value === '직접입력') {

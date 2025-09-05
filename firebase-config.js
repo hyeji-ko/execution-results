@@ -1,19 +1,34 @@
 // Firebase Configuration
-// 실제 프로젝트에서는 Firebase 콘솔에서 가져온 설정을 사용해야 합니다.
+// config.js 파일에서 설정을 로드합니다.
+// config.js 파일은 .gitignore에 포함되어 Git에 업로드되지 않습니다.
 
-import { initializeApp } from "firebase/app";
+// config.js에서 설정 로드 (config.js가 로드된 후 실행)
+function getFirebaseConfig() {
+    if (window.firebaseConfig) {
+        return window.firebaseConfig;
+    } else {
+        console.warn('config.js가 로드되지 않았습니다. 기본 설정을 사용합니다.');
+        // 기본 설정 (개발용)
+        return {
+            apiKey: "demo-api-key",
+            authDomain: "demo-project.firebaseapp.com",
+            projectId: "demo-project-id",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo123456"
+        };
+    }
+}
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_API_KEY,
-  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_APP_ID,
-};
+// Firebase 설정 가져오기
+const firebaseConfig = getFirebaseConfig();
 
-// Firebase 초기화
-firebase.initializeApp(firebaseConfig);
+// Firebase 초기화 (CDN 버전 사용)
+if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+} else {
+    console.error('Firebase CDN이 로드되지 않았습니다.');
+}
 
 // Firestore 데이터베이스 참조
 const db = firebase.firestore();
