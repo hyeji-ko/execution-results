@@ -1,12 +1,12 @@
 // 전사 신기술 세미나 실행계획 웹앱 메인 JavaScript
 
 // 전역 변수 설정
-let useLocalStorage = true; // 기본적으로 로컬 스토리지 사용
+window.useLocalStorage = true; // 기본적으로 로컬 스토리지 사용
 
 // Firebase 데이터베이스 함수들
 async function loadData() {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에서 데이터 로드
             const data = localStorage.getItem('seminarPlans');
             if (data) {
@@ -34,7 +34,7 @@ async function loadData() {
 
 async function saveData(data) {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에 저장
             localStorage.setItem('seminarPlans', JSON.stringify(data));
             return { success: true, id: 'local' };
@@ -54,7 +54,7 @@ async function saveData(data) {
 
 async function updateData(id, data) {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지 업데이트
             localStorage.setItem('seminarPlans', JSON.stringify(data));
             return { success: true, id: id };
@@ -1063,7 +1063,7 @@ class SeminarPlanningApp {
                 // 기존 데이터가 있으면 수정
                 console.log('기존 데이터 발견, 수정 처리:', existingData.id);
                 
-                if (useLocalStorage) {
+                if (window.useLocalStorage) {
                     result = this.saveToLocalStorage(this.currentData, existingData.id);
                 } else {
                     result = await updateData(existingData.id, this.currentData);
@@ -1077,7 +1077,7 @@ class SeminarPlanningApp {
                 // 기존 데이터가 없으면 새로 등록
                 console.log('새 데이터 등록 처리');
                 
-                if (useLocalStorage) {
+                if (window.useLocalStorage) {
                     result = this.saveToLocalStorage(this.currentData);
                 } else {
                     result = await saveData(this.currentData);
@@ -1104,7 +1104,7 @@ class SeminarPlanningApp {
     // 회차 + 일시 키값으로 기존 데이터 찾기
     async findExistingDataByKey(keyValue) {
         try {
-            if (useLocalStorage) {
+            if (window.useLocalStorage) {
                 // 로컬 스토리지에서 모든 세미나 데이터 찾기
                 const allData = this.getAllLocalStorageData();
                 
@@ -1614,7 +1614,7 @@ class SeminarPlanningApp {
     // ID로 세미나 조회
     async getSeminarById(id) {
         try {
-            if (useLocalStorage) {
+            if (window.useLocalStorage) {
                 const allData = this.getAllLocalStorageData();
                 const seminar = allData.find(item => item.id === id);
                 
@@ -2991,7 +2991,7 @@ class SeminarPlanningApp {
                     if (existingData) {
                         // 기존 데이터가 있으면 수정
                         console.log('📝 기존 데이터 수정:', existingData.id);
-                        if (useLocalStorage) {
+                        if (window.useLocalStorage) {
                             this.saveToLocalStorage(singleSeminar, existingData.id);
                         } else {
                             await updateData(existingData.id, singleSeminar);
@@ -3000,7 +3000,7 @@ class SeminarPlanningApp {
                     } else {
                         // 기존 데이터가 없으면 새로 등록
                         console.log('➕ 새로운 데이터 등록');
-                        if (useLocalStorage) {
+                        if (window.useLocalStorage) {
                             this.saveToLocalStorage(singleSeminar);
                         } else {
                             await saveData(singleSeminar);
@@ -3032,7 +3032,7 @@ class SeminarPlanningApp {
                         if (existingData) {
                             // 기존 데이터가 있으면 수정
                             console.log('📝 기존 데이터 수정:', existingData.id);
-                            if (useLocalStorage) {
+                            if (window.useLocalStorage) {
                                 this.saveToLocalStorage(seminar, existingData.id);
                             } else {
                                 await updateData(existingData.id, seminar);
@@ -3041,7 +3041,7 @@ class SeminarPlanningApp {
                         } else {
                             // 기존 데이터가 없으면 새로 등록
                             console.log('➕ 새로운 데이터 등록');
-                            if (useLocalStorage) {
+                            if (window.useLocalStorage) {
                                 this.saveToLocalStorage(seminar);
                             } else {
                                 await saveData(seminar);
@@ -3431,14 +3431,14 @@ class SeminarPlanningApp {
                     
                     if (existingData) {
                         // 기존 데이터가 있으면 수정
-                        if (useLocalStorage) {
+                        if (window.useLocalStorage) {
                             result = this.saveToLocalStorage(seminar, existingData.id);
                         } else {
                             result = await updateData(existingData.id, seminar);
                         }
                     } else {
                         // 기존 데이터가 없으면 새로 등록
-                        if (useLocalStorage) {
+                        if (window.useLocalStorage) {
                             result = this.saveToLocalStorage(seminar);
                         } else {
                             result = await saveData(seminar);
@@ -3487,7 +3487,7 @@ class SeminarPlanningApp {
             this.showLoading(true);
 
             // Firebase에서 모든 데이터 삭제
-            if (useLocalStorage) {
+            if (window.useLocalStorage) {
                 // 로컬 스토리지에서 모든 데이터 삭제
                 localStorage.removeItem('seminarPlans');
                 this.showSuccessToast('모든 데이터가 성공적으로 삭제되었습니다.');
@@ -3597,10 +3597,11 @@ class SeminarPlanningApp {
 
 // 앱 초기화
 let app;
+
 document.addEventListener('DOMContentLoaded', async function() {
     app = new SeminarPlanningApp();
     // app.initializeApp()은 constructor에서 자동으로 호출됩니다
+    
+    // 전역 함수로 노출 (HTML에서 호출하기 위해)
+    window.app = app;
 });
-
-// 전역 함수로 노출 (HTML에서 호출하기 위해)
-window.app = app;

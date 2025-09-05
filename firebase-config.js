@@ -1,33 +1,56 @@
 // Firebase Configuration
-// config.js 파일에서 설정을 로드합니다.
-// config.js 파일은 .gitignore에 포함되어 Git에 업로드되지 않습니다.
+// .env 파일에서 설정을 로드합니다.
+// .env 파일은 .gitignore에 포함되어 Git에 업로드되지 않습니다.
 
-// config.js에서 설정 로드 (config.js가 로드된 후 실행)
+// 환경 변수에서 Firebase 설정 가져오기
 function getFirebaseConfig() {
-    if (window.firebaseConfig) {
-        return window.firebaseConfig;
+    // .env 파일의 환경변수를 사용합니다.
+    // 브라우저에서는 환경변수를 직접 읽을 수 없으므로
+    // window 객체에 환경변수를 주입하는 방법을 사용합니다.
+    
+    // 환경 변수 확인
+    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (isLocalDev) {
+        console.log('로컬 개발 환경에서 실행 중 - .env 파일 사용');
     } else {
-        console.warn('config.js가 로드되지 않았습니다. 기본 설정을 사용합니다.');
-        // 기본 설정 (개발용)
-        return {
-            apiKey: "demo-api-key",
-            authDomain: "demo-project.firebaseapp.com",
-            projectId: "demo-project-id",
-            storageBucket: "demo-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:demo123456"
-        };
+        console.log('GitHub Pages 환경에서 실행 중 - 하드코딩된 설정 사용');
+    }
+    
+    // .env 파일의 환경변수 사용 (window.env가 주입된 경우)
+    // 또는 하드코딩된 값 사용 (GitHub Pages)
+    return {
+        apiKey: (window.env && window.env.VITE_API_KEY),
+        authDomain: (window.env && window.env.VITE_AUTH_DOMAIN),
+        projectId: (window.env && window.env.VITE_PROJECT_ID),
+        storageBucket: (window.env && window.env.VITE_STORAGE_BUCKET),
+        messagingSenderId: (window.env && window.env.VITE_MESSAGING_SENDER_ID),
+        appId: (window.env && window.env.VITE_APP_ID)
+    };
+}
+
+// Firebase 설정 가져오기 (환경변수 로드 후 실행)
+function initializeFirebase() {
+    const firebaseConfig = getFirebaseConfig();
+    
+    // Firebase 초기화 (CDN 버전 사용)
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        console.log('Firebase 초기화 완료:', firebaseConfig);
+    } else {
+        console.error('Firebase CDN이 로드되지 않았습니다.');
     }
 }
 
-// Firebase 설정 가져오기
-const firebaseConfig = getFirebaseConfig();
-
-// Firebase 초기화 (CDN 버전 사용)
-if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
+// 환경변수 로드 완료 후 Firebase 초기화
+if (window.env) {
+    // 이미 환경변수가 로드된 경우 즉시 초기화
+    initializeFirebase();
 } else {
-    console.error('Firebase CDN이 로드되지 않았습니다.');
+    // 환경변수 로드 대기
+    window.addEventListener('load', () => {
+        setTimeout(initializeFirebase, 100); // 환경변수 로드 대기
+    });
 }
 
 // Firestore 데이터베이스 참조
@@ -36,13 +59,12 @@ const db = firebase.firestore();
 // Firebase 설정 상태 확인
 console.log('Firebase initialized successfully');
 
-// Firebase를 기본 저장소로 사용
-const useLocalStorage = false; // Firebase 사용
+// useLocalStorage는 app.js에서 정의됨
 
 // 데이터 저장 함수 (로컬 스토리지 또는 Firebase)
 async function saveData(data) {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지 사용
             localStorage.setItem('seminarPlan', JSON.stringify(data));
             return { success: true, message: '로컬 스토리지에 저장되었습니다.' };
@@ -64,7 +86,7 @@ async function saveData(data) {
 // 데이터 불러오기 함수
 async function loadData() {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에서 가장 최신 데이터 불러오기
             const data = localStorage.getItem('seminarPlans');
             if (data) {
@@ -130,7 +152,7 @@ async function loadData() {
 // 데이터 업데이트 함수
 async function updateData(id, data) {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에서 특정 ID의 데이터 업데이트
             const allData = JSON.parse(localStorage.getItem('seminarPlans') || '[]');
             const index = allData.findIndex(item => item.id === id);
@@ -160,7 +182,7 @@ async function updateData(id, data) {
 // 데이터 삭제 함수
 async function deleteData(id) {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에서 특정 ID의 데이터 삭제
             const allData = JSON.parse(localStorage.getItem('seminarPlans') || '[]');
             const filteredData = allData.filter(item => item.id !== id);
@@ -180,7 +202,7 @@ async function deleteData(id) {
 // 모든 세미나 계획 목록 불러오기
 async function loadAllPlans() {
     try {
-        if (useLocalStorage) {
+        if (window.useLocalStorage) {
             // 로컬 스토리지에서 모든 세미나 계획 불러오기
             const data = localStorage.getItem('seminarPlans');
             if (data) {
@@ -266,7 +288,7 @@ window.updateData = updateData;
 window.deleteData = deleteData;
 window.loadAllPlans = loadAllPlans;
 window.db = db;
-window.useLocalStorage = useLocalStorage;
+// useLocalStorage는 app.js에서 전역으로 설정됨
 
 // 페이지 로드 시 Firebase 상태 확인
 document.addEventListener('DOMContentLoaded', function() {
