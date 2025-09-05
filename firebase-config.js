@@ -43,11 +43,15 @@ function getFirebaseConfig() {
 // Firebase 설정 가져오기 (환경변수 로드 후 실행)
 function initializeFirebase() {
     const firebaseConfig = getFirebaseConfig();
-    
+
     // Firebase 초기화 (CDN 버전 사용)
     if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         console.log('Firebase 초기화 완료:', firebaseConfig);
+        
+        // Firestore 데이터베이스 참조 설정
+        db = firebase.firestore();
+        console.log('Firestore 데이터베이스 연결 완료');
     } else {
         console.error('Firebase CDN이 로드되지 않았습니다.');
     }
@@ -64,8 +68,8 @@ if (window.env) {
     });
 }
 
-// Firestore 데이터베이스 참조
-const db = firebase.firestore();
+// Firestore 데이터베이스 참조 (Firebase 초기화 후에 설정)
+let db = null;
 
 // Firebase 설정 상태 확인
 console.log('Firebase initialized successfully');
@@ -81,8 +85,15 @@ async function saveData(data) {
             return { success: true, message: '로컬 스토리지에 저장되었습니다.' };
         } else {
             // Firebase 사용
+            if (!db) {
+                throw new Error('Firebase가 초기화되지 않았습니다.');
+            }
+            
+            // 데이터가 배열인 경우 첫 번째 요소를 사용
+            const dataToSave = Array.isArray(data) ? data[0] : data;
+            
             const docRef = await db.collection('seminarPlans').add({
-                ...data,
+                ...dataToSave,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -120,6 +131,10 @@ async function loadData() {
             }
         } else {
             // Firebase에서 불러오기 (모든 데이터를 가져온 후 JavaScript에서 정렬)
+            if (!db) {
+                throw new Error('Firebase가 초기화되지 않았습니다.');
+            }
+            
             const snapshot = await db.collection('seminarPlans').get();
             
             if (!snapshot.empty) {
@@ -178,6 +193,10 @@ async function updateData(id, data) {
             }
         } else {
             // Firebase 업데이트
+            if (!db) {
+                throw new Error('Firebase가 초기화되지 않았습니다.');
+            }
+            
             await db.collection('seminarPlans').doc(id).update({
                 ...data,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -201,6 +220,10 @@ async function deleteData(id) {
             return { success: true, message: '로컬 스토리지에서 삭제되었습니다.' };
         } else {
             // Firebase 삭제
+            if (!db) {
+                throw new Error('Firebase가 초기화되지 않았습니다.');
+            }
+            
             await db.collection('seminarPlans').doc(id).delete();
             return { success: true, message: 'Firebase에서 삭제되었습니다.' };
         }
@@ -238,6 +261,10 @@ async function loadAllPlans() {
             }
         } else {
             // Firebase에서 모든 계획 불러오기 (모든 데이터를 가져온 후 JavaScript에서 정렬)
+            if (!db) {
+                throw new Error('Firebase가 초기화되지 않았습니다.');
+            }
+            
             const snapshot = await db.collection('seminarPlans').get();
             
             const plans = [];
