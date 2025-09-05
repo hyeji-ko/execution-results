@@ -1,7 +1,7 @@
 // 전사 신기술 세미나 실행계획 웹앱 메인 JavaScript
 
 // 전역 변수 설정
-window.useLocalStorage = true; // 기본적으로 로컬 스토리지 사용
+window.useLocalStorage = false; // Firebase 사용
 
 // Firebase 데이터베이스 함수들
 async function loadData() {

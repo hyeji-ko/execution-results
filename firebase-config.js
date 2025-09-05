@@ -28,15 +28,15 @@ function getFirebaseConfig() {
         return window.firebaseConfig;
     }
     
-    // 최후의 수단: 기본 설정 (오류 방지)
-    console.warn('환경변수를 찾을 수 없습니다. 기본 설정을 사용합니다.');
+    // 최후의 수단: 실제 Firebase 설정 사용
+    console.warn('환경변수를 찾을 수 없습니다. 실제 Firebase 설정을 사용합니다.');
     return {
-        apiKey: "demo-api-key",
-        authDomain: "demo-project.firebaseapp.com",
-        projectId: "demo-project",
-        storageBucket: "demo-project.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:demo123456"
+        apiKey: "AIzaSyDT0Uv6LSMfD5b8ykB0ch4N7EvpF4-chTM",
+        authDomain: "execution-results.firebaseapp.com",
+        projectId: "execution-results",
+        storageBucket: "execution-results.firebasestorage.app",
+        messagingSenderId: "449225654732",
+        appId: "1:449225654732:web:4a99d2c54e6c9dda621d69"
     };
 }
 
@@ -277,7 +277,7 @@ async function loadAllPlans() {
 
 // Firebase 설정 확인
 function checkFirebaseStatus() {
-    if (useLocalStorage) {
+    if (window.useLocalStorage) {
         console.log('로컬 스토리지 모드로 실행 중');
         return true;
     } else {
