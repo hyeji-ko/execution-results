@@ -268,6 +268,15 @@ class SeminarPlanningApp {
             if (result.success && result.data) {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
+                
+                // timeSchedule과 attendeeList가 없으면 빈 배열로 초기화
+                if (!this.currentData.timeSchedule) {
+                    this.currentData.timeSchedule = [];
+                }
+                if (!this.currentData.attendeeList) {
+                    this.currentData.attendeeList = [];
+                }
+                
                 this.populateForm();
                 console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
@@ -800,6 +809,11 @@ class SeminarPlanningApp {
         const tbody = document.getElementById('timeTableBody');
         tbody.innerHTML = '';
         
+        // timeSchedule이 없거나 배열이 아닌 경우 빈 배열로 초기화
+        if (!this.currentData.timeSchedule || !Array.isArray(this.currentData.timeSchedule)) {
+            this.currentData.timeSchedule = [];
+        }
+        
         this.currentData.timeSchedule.forEach((item, index) => {
             // 직접 행 생성 (addTimeRow() 호출하지 않음)
             const row = document.createElement('tr');
@@ -915,6 +929,11 @@ class SeminarPlanningApp {
     populateAttendeeTable() {
         const tbody = document.getElementById('attendeeTableBody');
         tbody.innerHTML = '';
+        
+        // attendeeList가 없거나 배열이 아닌 경우 빈 배열로 초기화
+        if (!this.currentData.attendeeList || !Array.isArray(this.currentData.attendeeList)) {
+            this.currentData.attendeeList = [];
+        }
         
         this.currentData.attendeeList.forEach((item, index) => {
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
