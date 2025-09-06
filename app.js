@@ -4008,10 +4008,13 @@ class SeminarPlanningApp {
             
             if (objectiveEl) {
                 // resultData.objective가 있으면 사용, 없으면 현재 폼 값 유지
-                const objectiveValue = resultData.objective || objectiveEl.value || '';
-                objectiveEl.value = objectiveValue;
-                this.currentData.objective = objectiveValue;
-                console.log('✅ 목표 설정:', objectiveValue);
+                if (resultData.objective) {
+                    objectiveEl.value = resultData.objective;
+                    this.currentData.objective = resultData.objective;
+                    console.log('✅ 목표 설정 (실시결과 데이터):', resultData.objective);
+                } else {
+                    console.log('ℹ️ 실시결과 데이터에 목표가 없음, 현재 폼 값 유지:', objectiveEl.value);
+                }
                 console.log('✅ objectiveEl.value:', objectiveEl.value);
                 console.log('✅ this.currentData.objective:', this.currentData.objective);
             } else {
@@ -4098,8 +4101,7 @@ class SeminarPlanningApp {
 
     // 메인화면 실시결과 폼 초기화
     clearMainResultForm() {
-        document.getElementById('objective').value = '';
-        this.currentData.objective = '';
+        // 목표는 기본 정보이므로 클리어하지 않음
         document.getElementById('mainResultContent').value = '';
         document.getElementById('mainResultFuturePlan').value = '';
         this.clearMainSketchFields();
