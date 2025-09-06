@@ -305,20 +305,43 @@ class SeminarPlanningApp {
         console.log('attendeeList 존재 여부:', 'attendeeList' in (this.currentData || {}));
         console.log('timeSchedule 존재 여부:', 'timeSchedule' in (this.currentData || {}));
         
+        // currentData가 null이거나 undefined인 경우 처리
+        if (!this.currentData) {
+            console.error('currentData가 null 또는 undefined입니다.');
+            return;
+        }
+        
         // 참석자 데이터 마이그레이션 먼저 실행
         this.migrateAttendeeData();
         
         // 기본 정보 채우기 (목표 포함)
         console.log('기본 정보 채우기 시작...');
-        Object.keys(this.currentData).forEach(key => {
-            if (key === 'session') {
-                // 회차 필드 특별 처리
-                this.populateSessionField();
+        
+        // 회차 필드 특별 처리
+        if (this.currentData.session) {
+            console.log('회차 필드 처리 중...');
+            this.populateSessionField();
+        }
+        
+        // 각 필드별로 직접 매핑
+        const fieldMappings = [
+            { key: 'objective', id: 'objective' },
+            { key: 'datetime', id: 'datetime' },
+            { key: 'location', id: 'location' },
+            { key: 'attendees', id: 'attendees' }
+        ];
+        
+        fieldMappings.forEach(mapping => {
+            const value = this.currentData[mapping.key];
+            const element = document.getElementById(mapping.id);
+            
+            console.log(`필드 매핑: ${mapping.key} -> ${mapping.id}, 값: ${value}, 요소:`, element);
+            
+            if (element && value) {
+                element.value = value;
+                console.log(`값 설정 완료: ${mapping.key} = ${value}`);
             } else {
-                const element = document.getElementById(key);
-                if (element && typeof this.currentData[key] === 'string') {
-                    element.value = this.currentData[key];
-                }
+                console.log(`요소를 찾을 수 없거나 값이 없음: ${mapping.key}`, element, value);
             }
         });
 
@@ -826,6 +849,8 @@ class SeminarPlanningApp {
         console.log('시간 계획 테이블 렌더링 시작...');
         
         this.currentData.timeSchedule.forEach((item, index) => {
+            console.log(`시간 계획 아이템 처리 중: index=${index}, item=`, item);
+            
             // 직접 행 생성 (addTimeRow() 호출하지 않음)
             const row = document.createElement('tr');
             row.className = 'table-row-hover';
@@ -864,41 +889,56 @@ class SeminarPlanningApp {
             `;
             
             tbody.appendChild(row);
+            console.log(`시간 계획 행 추가됨: index=${index}, type=${item.type}`);
             
             // 데이터 채우기 (모바일 환경 고려)
             const inputs = row.querySelectorAll('input, select, textarea');
-            if (inputs[0]) {
-                inputs[0].value = item.type || '';
+            console.log(`시간 계획 입력 요소들:`, inputs);
+            
+            // select 요소 (type)
+            const typeSelect = row.querySelector('select[data-field="type"]');
+            if (typeSelect && item.type) {
+                typeSelect.value = item.type;
+                console.log(`시간 계획 select 값 설정: ${item.type}`);
                 // 모바일에서 select 값이 제대로 설정되도록 강제 업데이트
                 setTimeout(() => {
-                    inputs[0].value = item.type || '';
+                    typeSelect.value = item.type;
                 }, 10);
             }
-            if (inputs[1]) {
-                inputs[1].value = item.content || '';
-                // textarea의 경우 value 속성 설정
-                if (inputs[1].tagName === 'TEXTAREA') {
-                    inputs[1].textContent = item.content || '';
-                } else {
-                    inputs[1].setAttribute('value', item.content || '');
-                }
+            
+            // textarea 요소 (content)
+            const contentTextarea = row.querySelector('textarea[data-field="content"]');
+            if (contentTextarea && item.content) {
+                contentTextarea.value = item.content;
+                contentTextarea.textContent = item.content;
+                console.log(`시간 계획 textarea 값 설정: ${item.content}`);
             }
-            if (inputs[2]) {
-                inputs[2].value = item.time || '';
-                inputs[2].setAttribute('value', item.time || '');
+            
+            // input 요소 (time)
+            const timeInput = row.querySelector('input[data-field="time"]');
+            if (timeInput && item.time) {
+                timeInput.value = item.time;
+                timeInput.setAttribute('value', item.time);
+                console.log(`시간 계획 time 값 설정: ${item.time}`);
             }
-            if (inputs[3]) {
-                inputs[3].value = item.responsible || '';
-                inputs[3].setAttribute('value', item.responsible || '');
+            
+            // input 요소 (responsible)
+            const responsibleInput = row.querySelector('input[data-field="responsible"]');
+            if (responsibleInput && item.responsible) {
+                responsibleInput.value = item.responsible;
+                responsibleInput.setAttribute('value', item.responsible);
+                console.log(`시간 계획 responsible 값 설정: ${item.responsible}`);
             }
             
             // 이벤트 리스너 추가 (모바일 환경 고려)
             this.bindTimeRowEvents(row, index);
             
             console.log(`시간 계획 행 추가됨: index=${index}, type=${item.type}`);
+            console.log(`시간 계획 행 DOM 요소:`, row);
         });
         
         console.log('시간 계획 테이블 렌더링 완료. 총 행 수:', tbody.children.length);
+        console.log('tbody 자식 요소들:', tbody.children);
     }
     
     // 시간 계획 행 이벤트 바인딩 (모바일 환경 고려)
@@ -1004,6 +1044,8 @@ class SeminarPlanningApp {
         console.log('참석자 테이블 렌더링 시작...');
         
         this.currentData.attendeeList.forEach((item, index) => {
+            console.log(`참석자 아이템 처리 중: index=${index}, item=`, item);
+            
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
             const row = document.createElement('tr');
             row.className = 'table-row-hover';
@@ -1093,9 +1135,10 @@ class SeminarPlanningApp {
             // 데이터 채우기 (모바일 환경 고려)
             const nameInput = row.querySelector('input[data-field="name"]');
             
-            if (nameInput) {
-                nameInput.value = item.name || '';
-                nameInput.setAttribute('value', item.name || '');
+            if (nameInput && item.name) {
+                nameInput.value = item.name;
+                nameInput.setAttribute('value', item.name);
+                console.log(`참석자 name 값 설정: ${item.name}`);
             }
             
             // 직급 필드 처리
@@ -1108,6 +1151,7 @@ class SeminarPlanningApp {
                     // 미리 정의된 옵션인 경우
                     if (positionSelect) {
                         positionSelect.value = item.position;
+                        console.log(`참석자 position 값 설정: ${item.position}`);
                     }
                 } else {
                     // 직접입력인 경우
@@ -1117,6 +1161,7 @@ class SeminarPlanningApp {
                     if (positionCustomInput) {
                         positionCustomInput.value = item.position;
                         positionCustomInput.classList.remove('hidden');
+                        console.log(`참석자 position 직접입력 값 설정: ${item.position}`);
                     }
                 }
             }
@@ -1131,6 +1176,7 @@ class SeminarPlanningApp {
                     // 미리 정의된 옵션인 경우
                     if (departmentSelect) {
                         departmentSelect.value = item.department;
+                        console.log(`참석자 department 값 설정: ${item.department}`);
                     }
                 } else {
                     // 직접 입력된 값인 경우
@@ -1140,6 +1186,7 @@ class SeminarPlanningApp {
                     if (departmentCustomInput) {
                         departmentCustomInput.value = item.department;
                         departmentCustomInput.classList.remove('hidden');
+                        console.log(`참석자 department 직접입력 값 설정: ${item.department}`);
                     }
                 }
             }
@@ -1154,6 +1201,7 @@ class SeminarPlanningApp {
                     // 미리 정의된 옵션인 경우
                     if (workSelect) {
                         workSelect.value = item.work;
+                        console.log(`참석자 work 값 설정: ${item.work}`);
                     }
                 } else {
                     // 직접입력인 경우
@@ -1163,6 +1211,7 @@ class SeminarPlanningApp {
                     if (workCustomInput) {
                         workCustomInput.value = item.work;
                         workCustomInput.classList.remove('hidden');
+                        console.log(`참석자 work 직접입력 값 설정: ${item.work}`);
                     }
                 }
             }
@@ -1173,8 +1222,7 @@ class SeminarPlanningApp {
                 // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'Y'로 설정
                 // 기존 데이터와의 호환성을 위해 attendance 필드가 없는 경우 'Y'로 처리
                 const attendanceValue = (item.attendance !== undefined && item.attendance !== null) ? item.attendance : 'Y';
-                
-                console.log(`참석여부 디버깅: index=${index}, item.attendance=${item.attendance}, attendanceValue=${attendanceValue}`);
+                console.log(`참석여부 값 설정: index=${index}, attendanceValue=${attendanceValue}, item.attendance=${item.attendance}`);
                 
                 // 강제로 value 설정
                 attendanceSelect.value = attendanceValue;
@@ -1211,6 +1259,8 @@ class SeminarPlanningApp {
             const positionSelect = row.querySelector('select[data-field="position"]');
             const workSelect = row.querySelector('select[data-field="work"]');
             
+            console.log(`참석자 이벤트 바인딩: index=${index}, positionSelect=`, positionSelect, 'workSelect=', workSelect);
+            
             if (positionSelect) {
                 positionSelect.addEventListener('change', (e) => {
                     this.toggleCustomPositionInput(index, e.target.value);
@@ -1226,9 +1276,11 @@ class SeminarPlanningApp {
             // 행을 tbody에 추가
             tbody.appendChild(row);
             console.log(`참석자 행 추가됨: index=${index}, name=${item.name}`);
+            console.log(`참석자 행 DOM 요소:`, row);
         });
         
         console.log('참석자 테이블 렌더링 완료. 총 행 수:', tbody.children.length);
+        console.log('tbody 자식 요소들:', tbody.children);
     }
 
     async saveData() {
@@ -1997,8 +2049,14 @@ class SeminarPlanningApp {
 
     // 회차 필드 데이터 채우기
     populateSessionField() {
+        console.log('populateSessionField 시작');
+        console.log('currentData.session:', this.currentData.session);
+        
         const selectElement = document.getElementById('sessionSelect');
         const inputElement = document.getElementById('sessionInput');
+        
+        console.log('selectElement:', selectElement);
+        console.log('inputElement:', inputElement);
         
         if (this.currentData.session) {
             // HTML에서 정의된 모든 회차 옵션들
@@ -2009,11 +2067,13 @@ class SeminarPlanningApp {
             
             if (sessionOptions.includes(this.currentData.session)) {
                 // 미리 정의된 옵션인 경우
+                console.log('미리 정의된 옵션으로 설정:', this.currentData.session);
                 selectElement.value = this.currentData.session;
                 selectElement.style.display = 'block';
                 inputElement.classList.add('hidden');
             } else {
                 // 직접 입력된 값인 경우
+                console.log('직접 입력된 값으로 설정:', this.currentData.session);
                 selectElement.value = '직접입력';
                 selectElement.style.display = 'none';
                 inputElement.value = this.currentData.session;
@@ -2021,11 +2081,14 @@ class SeminarPlanningApp {
             }
         } else {
             // 빈 값인 경우
+            console.log('빈 값으로 설정');
             selectElement.value = '';
             selectElement.style.display = 'block';
             inputElement.value = '';
             inputElement.classList.add('hidden');
         }
+        
+        console.log('populateSessionField 완료');
     }
 
     // 폼 초기화 (사용자 요청)
