@@ -1050,7 +1050,8 @@ class SeminarPlanningApp {
         
         let migrated = false;
         this.currentData.attendeeList.forEach((item, index) => {
-            if (item.attendance === undefined || item.attendance === null) {
+            // attendance 필드가 없거나 유효하지 않은 값인 경우에만 마이그레이션
+            if (item.attendance === undefined || item.attendance === null || item.attendance === '') {
                 item.attendance = 'Y';
                 migrated = true;
                 console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='Y' 추가`);
@@ -1099,8 +1100,7 @@ class SeminarPlanningApp {
         const tbody = document.getElementById('attendeeTableBody');
         tbody.innerHTML = '';
         
-        // 기존 데이터 마이그레이션: attendance 필드가 없는 경우 'Y'로 설정
-        this.migrateAttendeeData();
+        // 마이그레이션은 populateForm에서 이미 실행됨
         
         console.log('참석자 데이터 전체:', this.currentData.attendeeList);
         console.log('참석자 데이터 타입:', typeof this.currentData.attendeeList);
