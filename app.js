@@ -4522,22 +4522,21 @@ class SeminarPlanningApp {
             </head>
             <body>
                 <h1>${session} 전사 신기술 세미나 실시 결과</h1>
-                
-                <div class="overview">
+                <div class="header">
+                    <h1>${safeText(this.currentData.session)} 전사 신기술 세미나 실시 결과</h1>
+                    <div style="text-align: right; margin-top: 10px; font-size: 12px;">${this.getCurrentDateString()}</div>
+                </div>  
+                <div class="section">
                     <h2>1. 개요</h2>
-                    <div class="overview-item">&nbsp;&nbsp;□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</div>
-                    <div class="overview-item">&nbsp;&nbsp;□ 참석 인력: ${safeText(attendeeTarget)}</div>
-                </div>
-                
-                <div class="content">
+                    <p class="info-content">&nbsp;&nbsp;□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</p>
+                    <p class="info-content">&nbsp;&nbsp;□ 참석 인력: ${safeText(attendeeTarget)}</p>
+                    
                     <h2>2. 주요 내용</h2>
-                    <div style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.mainContent))}</div>
-                </div>
-                
-                <div class="content">
+                    <p class="info-content">${safeText(this.parseMainContent(resultData.mainContent))}</p>
+                    
                     <h2>3. 향후 계획</h2>
-                    <div style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.futurePlan))}</div>
-                </div>
+                    <p class="info-content">${safeText(this.parseMainContent(resultData.futurePlan))}</p>
+                </div> 
                 
                 ${attendeeTableHTML}
                 ${sketchHTML}
