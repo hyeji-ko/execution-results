@@ -3989,41 +3989,43 @@ class SeminarPlanningApp {
     parseMainContent(text) {
         if (!text) return '미입력';
         
-        // 줄바꿈으로 분리하여 각 줄을 처리
-        const lines = text.split('\n').filter(line => line.trim());
+        console.log('원본 텍스트:', text);
+        
+        // 텍스트를 줄바꿈으로 분리
+        const lines = text.split('\n');
         const result = [];
         
         for (let line of lines) {
             const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
             
+            // □ 로 시작하는 경우 (공백 포함)
             if (trimmedLine.startsWith('□ ')) {
-                // □ 로 시작하는 경우: 2칸 띄우고 출력
-                const content = trimmedLine.substring(2).trim(); // '□ ' 제거
+                const content = trimmedLine.substring(2).trim();
                 result.push(`  □ ${content}`);
-            } else if (trimmedLine.startsWith('- ')) {
-                // - 로 시작하는 경우: 4칸 띄우고 출력
-                const content = trimmedLine.substring(2).trim(); // '- ' 제거
+            }
+            // - 로 시작하는 경우 (공백 포함)
+            else if (trimmedLine.startsWith('- ')) {
+                const content = trimmedLine.substring(2).trim();
                 result.push(`      - ${content}`);
-            } else if (trimmedLine.includes('□')) {
-                // □ 가 포함된 경우 (공백 없이)
-                const parts = trimmedLine.split('□');
-                if (parts.length > 1) {
-                    const content = parts[1].trim();
-                    result.push(`  □ ${content}`);
-                }
-            } else if (trimmedLine.includes('-')) {
-                // - 가 포함된 경우 (공백 없이)
-                const parts = trimmedLine.split('-');
-                if (parts.length > 1) {
-                    const content = parts[1].trim();
-                    result.push(`      - ${content}`);
-                }
-            } else if (trimmedLine) {
-                // 일반 텍스트인 경우
+            }
+            // □ 로 시작하는 경우 (공백 없음)
+            else if (trimmedLine.startsWith('□')) {
+                const content = trimmedLine.substring(1).trim();
+                result.push(`  □ ${content}`);
+            }
+            // - 로 시작하는 경우 (공백 없음)
+            else if (trimmedLine.startsWith('-')) {
+                const content = trimmedLine.substring(1).trim();
+                result.push(`      - ${content}`);
+            }
+            // 일반 텍스트인 경우
+            else {
                 result.push(`  □ ${trimmedLine}`);
             }
         }
         
+        console.log('파싱 결과:', result);
         return result.join('\n');
     }
 
