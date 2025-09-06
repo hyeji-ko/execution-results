@@ -5,12 +5,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
+    root: 'src',
     base: '/execution-results/',
     build: {
-      outDir: 'dist',
+      outDir: '../dist',
       assetsDir: 'assets',
       sourcemap: false,
-      minify: 'terser'
+      minify: 'esbuild'
     },
     define: {
       // 환경변수를 빌드 시점에 주입

@@ -3609,13 +3609,5 @@ class SeminarPlanningApp {
     }
 }
 
-// 앱 초기화
-let app;
-
-document.addEventListener('DOMContentLoaded', async function() {
-    app = new SeminarPlanningApp();
-    // app.initializeApp()은 constructor에서 자동으로 호출됩니다
-    
-    // 전역 함수로 노출 (HTML에서 호출하기 위해)
-    window.app = app;
-});
+// SeminarPlanningApp 클래스 export
+export { SeminarPlanningApp };
