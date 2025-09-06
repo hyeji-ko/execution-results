@@ -3530,8 +3530,14 @@ class SeminarPlanningApp {
     async showResultModal() {
         try {
             // 현재 메인화면의 회차와 일시를 가져와서 설정
-            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            let session = document.getElementById('sessionSelect').value;
+            const sessionInput = document.getElementById('sessionInput').value;
             const datetime = document.getElementById('datetime').value;
+            
+            // 직접입력이 선택된 경우 sessionInput 값을 사용
+            if (session === '직접입력' && sessionInput) {
+                session = sessionInput;
+            }
             
             if (!session || !datetime) {
                 this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
