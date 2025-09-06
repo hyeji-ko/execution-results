@@ -235,9 +235,14 @@
                 <h2 class="text-2xl font-bold text-gray-800 flex items-center">
                     <i class="fas fa-users text-purple-600 mr-3"></i>세미나 참석 명단
                 </h2>
-                <button id="addAttendeeRow" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center">
-                    <i class="fas fa-user-plus mr-2"></i>참석자 추가
-                </button>
+                <div class="flex space-x-3">
+                    <button id="selectAllAttendees" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center">
+                        <i class="fas fa-check-double mr-2"></i>참석여부 전체 Y 처리
+                    </button>
+                    <button id="addAttendeeRow" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center">
+                        <i class="fas fa-user-plus mr-2"></i>참석자 추가
+                    </button>
+                </div>
             </div>
             
             <div class="overflow-x-auto">

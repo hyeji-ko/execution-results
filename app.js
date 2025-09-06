@@ -129,6 +129,9 @@ class SeminarPlanningApp {
         // 참석자 행 추가
         document.getElementById('addAttendeeRow').addEventListener('click', () => this.addAttendeeRow());
         
+        // 참석전체 Y 처리 버튼
+        document.getElementById('selectAllAttendees').addEventListener('click', () => this.selectAllAttendees());
+        
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportResultPDF').addEventListener('click', () => this.exportResultToPDF());
@@ -693,6 +696,37 @@ class SeminarPlanningApp {
             work: '',
             attendance: 'N'  // 기본값 N으로 설정
         };
+    }
+
+    // 참석전체 Y 처리 함수
+    selectAllAttendees() {
+        console.log('참석전체 Y 처리 시작');
+        
+        const tbody = document.getElementById('attendeeTableBody');
+        const rows = tbody.children;
+        
+        let updatedCount = 0;
+        
+        // 모든 참석자 행의 참석여부를 'Y'로 변경
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const attendanceSelect = row.querySelector('select[data-field="attendance"]');
+            
+            if (attendanceSelect) {
+                attendanceSelect.value = 'Y';
+                updatedCount++;
+                
+                // 데이터 구조도 업데이트
+                if (this.currentData.attendeeList[i]) {
+                    this.currentData.attendeeList[i].attendance = 'Y';
+                }
+            }
+        }
+        
+        console.log(`참석전체 Y 처리 완료: ${updatedCount}명 업데이트`);
+        
+        // 성공 메시지 표시
+        this.showSuccessToast(`${updatedCount}명의 참석여부가 'Y'로 변경되었습니다.`);
     }
 
     updateTimeSchedule(index, field, value) {
