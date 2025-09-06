@@ -3555,11 +3555,19 @@ class SeminarPlanningApp {
             document.getElementById('resultSession').value = session;
             document.getElementById('resultDatetime').value = datetime;
             
+            // 기존 실시결과 조회
+            const hasExistingData = await this.loadExistingResult(session, datetime);
+            
+            // 모달 설명 업데이트
+            const description = document.getElementById('resultModalDescription');
+            if (hasExistingData) {
+                description.textContent = '기존에 등록된 실시결과를 조회했습니다. 수정 후 저장하세요.';
+            } else {
+                description.textContent = '세미나 실시 후 결과를 등록하고 스케치를 업로드할 수 있습니다';
+            }
+            
             // 모달 표시
             document.getElementById('resultModal').classList.remove('hidden');
-            
-            // 폼 초기화 (세미나 정보 제외)
-            this.resetResultForm();
         } catch (error) {
             console.error('실시결과 모달 표시 오류:', error);
             this.showErrorToast('모달을 표시하는 중 오류가 발생했습니다.');
@@ -3572,12 +3580,76 @@ class SeminarPlanningApp {
         this.resetResultForm();
     }
 
-    // 실시결과 폼 초기화
-    resetResultForm() {
-        // 세미나 정보는 유지하고 나머지만 초기화
-        document.getElementById('resultMainContent').value = '';
-        document.getElementById('resultFuturePlan').value = '';
+    // 기존 실시결과 조회
+    async loadExistingResult(session, datetime) {
+        try {
+            const results = await loadResultData();
+            if (results && results.length > 0) {
+                // 해당 회차와 일시에 맞는 결과 찾기
+                const existingResult = results.find(result => 
+                    result.session === session && result.datetime === datetime
+                );
+                
+                if (existingResult) {
+                    // 기존 데이터로 폼 채우기
+                    this.populateResultForm(existingResult);
+                    return true; // 기존 데이터가 있음
+                }
+            }
+            
+            // 기존 데이터가 없으면 폼 초기화
+            this.resetResultForm();
+            return false; // 기존 데이터가 없음
+        } catch (error) {
+            console.error('기존 실시결과 조회 오류:', error);
+            this.resetResultForm();
+            return false;
+        }
+    }
+
+    // 실시결과 폼에 데이터 채우기
+    populateResultForm(resultData) {
+        // 기본 정보 채우기
+        document.getElementById('resultMainContent').value = resultData.mainContent || '';
+        document.getElementById('resultFuturePlan').value = resultData.futurePlan || '';
         
+        // 스케치 데이터 처리
+        if (resultData.sketches && resultData.sketches.length > 0) {
+            // 스케치 1
+            if (resultData.sketches[0]) {
+                const sketch1 = resultData.sketches[0];
+                document.getElementById('sketchTitle1').value = sketch1.title || '';
+                
+                if (sketch1.imageData) {
+                    // Base64 이미지 표시
+                    document.getElementById('previewImage1').src = sketch1.imageData;
+                    document.getElementById('fileName1').textContent = sketch1.fileName || '업로드된 이미지';
+                    document.getElementById('filePreview1').classList.remove('hidden');
+                    document.getElementById('fileUploadArea1').classList.add('hidden');
+                }
+            }
+            
+            // 스케치 2
+            if (resultData.sketches[1]) {
+                const sketch2 = resultData.sketches[1];
+                document.getElementById('sketchTitle2').value = sketch2.title || '';
+                
+                if (sketch2.imageData) {
+                    // Base64 이미지 표시
+                    document.getElementById('previewImage2').src = sketch2.imageData;
+                    document.getElementById('fileName2').textContent = sketch2.fileName || '업로드된 이미지';
+                    document.getElementById('filePreview2').classList.remove('hidden');
+                    document.getElementById('fileUploadArea2').classList.add('hidden');
+                }
+            }
+        } else {
+            // 스케치가 없으면 초기화
+            this.resetSketchFields();
+        }
+    }
+
+    // 스케치 필드만 초기화
+    resetSketchFields() {
         // 스케치 1 초기화
         document.getElementById('sketchTitle1').value = '';
         document.getElementById('sketchFile1').value = '';
@@ -3589,6 +3661,16 @@ class SeminarPlanningApp {
         document.getElementById('sketchFile2').value = '';
         document.getElementById('filePreview2').classList.add('hidden');
         document.getElementById('fileUploadArea2').classList.remove('hidden');
+    }
+
+    // 실시결과 폼 초기화
+    resetResultForm() {
+        // 세미나 정보는 유지하고 나머지만 초기화
+        document.getElementById('resultMainContent').value = '';
+        document.getElementById('resultFuturePlan').value = '';
+        
+        // 스케치 필드 초기화
+        this.resetSketchFields();
     }
 
 
