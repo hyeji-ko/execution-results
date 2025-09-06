@@ -3637,14 +3637,12 @@ class SeminarPlanningApp {
             
             let imageUrl = '';
             
-            // 이미지 업로드 처리
+            // 이미지 처리 (Base64로 변환)
             if (sketchFile) {
-                const timestamp = Date.now();
-                const fileName = `sketches/${session}_${timestamp}_${sketchFile.name}`;
-                const uploadResult = await uploadImage(sketchFile, fileName);
+                const uploadResult = await uploadImage(sketchFile, '');
                 
                 if (uploadResult.success) {
-                    imageUrl = uploadResult.url;
+                    imageUrl = uploadResult.url; // Base64 데이터
                 } else {
                     this.showErrorToast(uploadResult.message);
                     return;
@@ -3658,8 +3656,9 @@ class SeminarPlanningApp {
                 mainContent: mainContent,
                 futurePlan: futurePlan,
                 sketchTitle: sketchTitle,
-                sketchImageUrl: imageUrl,
-                sketchFileName: sketchFile ? sketchFile.name : ''
+                sketchImageData: imageUrl, // Base64 데이터로 저장
+                sketchFileName: sketchFile ? sketchFile.name : '',
+                hasImage: !!sketchFile
             };
             
             // 데이터 저장

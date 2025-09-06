@@ -19,36 +19,37 @@ firebase.initializeApp(firebaseConfig);
 // Firestore 데이터베이스 참조
 const db = firebase.firestore();
 
-// Firebase Storage 참조
-const storage = firebase.storage();
-
 // Firebase 설정 상태 확인
 console.log('Firebase initialized successfully');
 
-// Firebase Storage 함수들
+// 이미지 처리 함수들 (Base64 방식)
+async function processImageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            resolve(e.target.result);
+        };
+        reader.onerror = (error) => {
+            reject(error);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 async function uploadImage(file, path) {
     try {
-        const storageRef = storage.ref();
-        const fileRef = storageRef.child(path);
-        const snapshot = await fileRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
-        return { success: true, url: downloadURL };
+        // Firebase Storage 대신 Base64로 변환하여 반환
+        const base64Data = await processImageToBase64(file);
+        return { success: true, url: base64Data };
     } catch (error) {
-        console.error('이미지 업로드 오류:', error);
-        return { success: false, message: '이미지 업로드 중 오류가 발생했습니다: ' + error.message };
+        console.error('이미지 처리 오류:', error);
+        return { success: false, message: '이미지 처리 중 오류가 발생했습니다: ' + error.message };
     }
 }
 
 async function deleteImage(path) {
-    try {
-        const storageRef = storage.ref();
-        const fileRef = storageRef.child(path);
-        await fileRef.delete();
-        return { success: true };
-    } catch (error) {
-        console.error('이미지 삭제 오류:', error);
-        return { success: false, message: '이미지 삭제 중 오류가 발생했습니다: ' + error.message };
-    }
+    // Base64 방식에서는 삭제할 필요 없음 (Firestore에서 직접 삭제)
+    return { success: true };
 }
 
 // 실시결과 저장 함수
