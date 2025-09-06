@@ -1586,6 +1586,10 @@ class SeminarPlanningApp {
                 const { id, ...dataWithoutId } = result.data;
                 this.currentData = dataWithoutId;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
+                
+                console.log('📋 loadData로 로드된 데이터:', this.currentData);
+                console.log('📋 스케치 정보:', this.currentData.sketches);
+                
                 await this.populateForm();
                 
                 this.showSuccessToast('Firebase에서 데이터를 성공적으로 불러왔습니다.');
@@ -1910,13 +1914,16 @@ class SeminarPlanningApp {
                         name: this.ensureStringValue(item.name),
                         position: this.ensureStringValue(item.position),
                         department: this.ensureStringValue(item.department),
-                        work: this.ensureStringValue(item.work)
-                    })) : []
+                        work: this.ensureStringValue(item.work),
+                        attendance: this.ensureStringValue(item.attendance) || 'N' // 참석여부 추가
+                    })) : [],
+                    sketches: existingData.data.sketches || [] // 스케치 정보 추가
                 };
                 
                 console.log('📋 정규화된 세미나 데이터:', normalizedData);
                 console.log('📋 시간 계획 데이터:', normalizedData.timeSchedule);
                 console.log('📋 참석자 데이터:', normalizedData.attendeeList);
+                console.log('📋 스케치 데이터:', normalizedData.sketches);
                 
                 // 메인 화면에 데이터 로드
                 this.currentData = normalizedData;
