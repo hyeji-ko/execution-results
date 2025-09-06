@@ -286,6 +286,9 @@ class SeminarPlanningApp {
     }
 
     async populateForm() {
+        // 참석자 데이터 마이그레이션 먼저 실행
+        this.migrateAttendeeData();
+        
         // 기본 정보 채우기 (목표 포함)
         Object.keys(this.currentData).forEach(key => {
             if (key === 'session') {
@@ -886,9 +889,34 @@ class SeminarPlanningApp {
         });
     }
 
+    // 참석자 데이터 마이그레이션 (기존 데이터 호환성)
+    migrateAttendeeData() {
+        if (!this.currentData.attendeeList || !Array.isArray(this.currentData.attendeeList)) {
+            return;
+        }
+        
+        let migrated = false;
+        this.currentData.attendeeList.forEach((item, index) => {
+            if (item.attendance === undefined || item.attendance === null) {
+                item.attendance = 'Y';
+                migrated = true;
+                console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='Y' 추가`);
+            }
+        });
+        
+        if (migrated) {
+            console.log('참석자 데이터 마이그레이션 완료 - attendance 필드가 추가되었습니다.');
+            // 마이그레이션된 데이터를 즉시 저장
+            this.saveDataQuietly();
+        }
+    }
+
     populateAttendeeTable() {
         const tbody = document.getElementById('attendeeTableBody');
         tbody.innerHTML = '';
+        
+        // 기존 데이터 마이그레이션: attendance 필드가 없는 경우 'Y'로 설정
+        this.migrateAttendeeData();
         
         console.log('참석자 데이터 전체:', this.currentData.attendeeList);
         
@@ -1060,7 +1088,8 @@ class SeminarPlanningApp {
             const attendanceSelect = row.querySelector('select[data-field="attendance"]');
             if (attendanceSelect) {
                 // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'Y'로 설정
-                const attendanceValue = item.attendance || 'Y';
+                // 기존 데이터와의 호환성을 위해 attendance 필드가 없는 경우 'Y'로 처리
+                const attendanceValue = (item.attendance !== undefined && item.attendance !== null) ? item.attendance : 'Y';
                 
                 console.log(`참석여부 디버깅: index=${index}, item.attendance=${item.attendance}, attendanceValue=${attendanceValue}`);
                 
