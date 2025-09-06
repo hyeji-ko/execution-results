@@ -136,9 +136,16 @@ class SeminarPlanningApp {
         document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
         document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModal());
         document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
-        document.getElementById('sketchFile').addEventListener('change', (e) => this.handleFileUpload(e));
-        document.getElementById('removeFile').addEventListener('click', () => this.removeFile());
-        document.getElementById('fileUploadArea').addEventListener('click', () => document.getElementById('sketchFile').click());
+        
+        // 스케치 1 이벤트
+        document.getElementById('sketchFile1').addEventListener('change', (e) => this.handleFileUpload(e, 1));
+        document.getElementById('removeFile1').addEventListener('click', () => this.removeFile(1));
+        document.getElementById('fileUploadArea1').addEventListener('click', () => document.getElementById('sketchFile1').click());
+        
+        // 스케치 2 이벤트
+        document.getElementById('sketchFile2').addEventListener('change', (e) => this.handleFileUpload(e, 2));
+        document.getElementById('removeFile2').addEventListener('click', () => this.removeFile(2));
+        document.getElementById('fileUploadArea2').addEventListener('click', () => document.getElementById('sketchFile2').click());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -3570,15 +3577,23 @@ class SeminarPlanningApp {
         // 세미나 정보는 유지하고 나머지만 초기화
         document.getElementById('resultMainContent').value = '';
         document.getElementById('resultFuturePlan').value = '';
-        document.getElementById('sketchTitle').value = '';
-        document.getElementById('sketchFile').value = '';
-        document.getElementById('filePreview').classList.add('hidden');
-        document.getElementById('fileUploadArea').classList.remove('hidden');
+        
+        // 스케치 1 초기화
+        document.getElementById('sketchTitle1').value = '';
+        document.getElementById('sketchFile1').value = '';
+        document.getElementById('filePreview1').classList.add('hidden');
+        document.getElementById('fileUploadArea1').classList.remove('hidden');
+        
+        // 스케치 2 초기화
+        document.getElementById('sketchTitle2').value = '';
+        document.getElementById('sketchFile2').value = '';
+        document.getElementById('filePreview2').classList.add('hidden');
+        document.getElementById('fileUploadArea2').classList.remove('hidden');
     }
 
 
     // 파일 업로드 처리
-    handleFileUpload(event) {
+    handleFileUpload(event, sketchNumber) {
         const file = event.target.files[0];
         if (file) {
             // 파일 타입 검증
@@ -3596,20 +3611,20 @@ class SeminarPlanningApp {
             // 미리보기 표시
             const reader = new FileReader();
             reader.onload = (e) => {
-                document.getElementById('previewImage').src = e.target.result;
-                document.getElementById('fileName').textContent = file.name;
-                document.getElementById('filePreview').classList.remove('hidden');
-                document.getElementById('fileUploadArea').classList.add('hidden');
+                document.getElementById(`previewImage${sketchNumber}`).src = e.target.result;
+                document.getElementById(`fileName${sketchNumber}`).textContent = file.name;
+                document.getElementById(`filePreview${sketchNumber}`).classList.remove('hidden');
+                document.getElementById(`fileUploadArea${sketchNumber}`).classList.add('hidden');
             };
             reader.readAsDataURL(file);
         }
     }
 
     // 파일 제거
-    removeFile() {
-        document.getElementById('sketchFile').value = '';
-        document.getElementById('filePreview').classList.add('hidden');
-        document.getElementById('fileUploadArea').classList.remove('hidden');
+    removeFile(sketchNumber) {
+        document.getElementById(`sketchFile${sketchNumber}`).value = '';
+        document.getElementById(`filePreview${sketchNumber}`).classList.add('hidden');
+        document.getElementById(`fileUploadArea${sketchNumber}`).classList.remove('hidden');
     }
 
     // 실시결과 저장
@@ -3619,8 +3634,14 @@ class SeminarPlanningApp {
             const datetime = document.getElementById('resultDatetime').value;
             const mainContent = document.getElementById('resultMainContent').value.trim();
             const futurePlan = document.getElementById('resultFuturePlan').value.trim();
-            const sketchTitle = document.getElementById('sketchTitle').value.trim();
-            const sketchFile = document.getElementById('sketchFile').files[0];
+            
+            // 스케치 1 정보
+            const sketchTitle1 = document.getElementById('sketchTitle1').value.trim();
+            const sketchFile1 = document.getElementById('sketchFile1').files[0];
+            
+            // 스케치 2 정보
+            const sketchTitle2 = document.getElementById('sketchTitle2').value.trim();
+            const sketchFile2 = document.getElementById('sketchFile2').files[0];
             
             // 유효성 검사
             if (!session || !datetime) {
@@ -3628,23 +3649,41 @@ class SeminarPlanningApp {
                 return;
             }
             
-            if (!mainContent && !futurePlan && !sketchFile) {
+            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
                 this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
                 return;
             }
             
             this.showLoading(true);
             
-            let imageUrl = '';
-            
-            // 이미지 처리 (Base64로 변환)
-            if (sketchFile) {
-                const uploadResult = await uploadImage(sketchFile, '');
-                
+            // 스케치 1 처리
+            let sketch1Data = null;
+            if (sketchFile1) {
+                const uploadResult = await uploadImage(sketchFile1, '');
                 if (uploadResult.success) {
-                    imageUrl = uploadResult.url; // Base64 데이터
+                    sketch1Data = {
+                        title: sketchTitle1,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile1.name
+                    };
                 } else {
-                    this.showErrorToast(uploadResult.message);
+                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
+                    return;
+                }
+            }
+            
+            // 스케치 2 처리
+            let sketch2Data = null;
+            if (sketchFile2) {
+                const uploadResult = await uploadImage(sketchFile2, '');
+                if (uploadResult.success) {
+                    sketch2Data = {
+                        title: sketchTitle2,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile2.name
+                    };
+                } else {
+                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
                     return;
                 }
             }
@@ -3655,11 +3694,16 @@ class SeminarPlanningApp {
                 datetime: datetime,
                 mainContent: mainContent,
                 futurePlan: futurePlan,
-                sketchTitle: sketchTitle,
-                sketchImageData: imageUrl, // Base64 데이터로 저장
-                sketchFileName: sketchFile ? sketchFile.name : '',
-                hasImage: !!sketchFile
+                sketches: []
             };
+            
+            // 스케치 데이터 추가
+            if (sketch1Data) {
+                resultData.sketches.push(sketch1Data);
+            }
+            if (sketch2Data) {
+                resultData.sketches.push(sketch2Data);
+            }
             
             // 데이터 저장
             const result = await saveResultData(resultData);
