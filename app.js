@@ -140,10 +140,12 @@ class SeminarPlanningApp {
         // 메인화면 실시결과 스케치 이벤트
         document.getElementById('mainSketchFile1').addEventListener('change', (e) => this.handleMainFileUpload(e, 1));
         document.getElementById('mainRemoveFile1').addEventListener('click', () => this.removeMainFile(1));
+        document.getElementById('mainDownloadFile1').addEventListener('click', () => this.downloadMainFile(1));
         document.getElementById('mainFileUploadArea1').addEventListener('click', () => document.getElementById('mainSketchFile1').click());
         
         document.getElementById('mainSketchFile2').addEventListener('change', (e) => this.handleMainFileUpload(e, 2));
         document.getElementById('mainRemoveFile2').addEventListener('click', () => this.removeMainFile(2));
+        document.getElementById('mainDownloadFile2').addEventListener('click', () => this.downloadMainFile(2));
         document.getElementById('mainFileUploadArea2').addEventListener('click', () => document.getElementById('mainSketchFile2').click());
         
         // 메인화면 실시결과 저장 버튼
@@ -378,14 +380,14 @@ class SeminarPlanningApp {
         this.populateAttendeeTable();
         console.log('참석자 테이블 채우기 완료');
         
-        // 스케치 정보가 있으면 먼저 표시
-        if (this.currentData.sketches && this.currentData.sketches.length > 0) {
-            console.log('🖼️ currentData에서 스케치 정보 발견, 먼저 표시:', this.currentData.sketches);
-            this.populateMainResultForm({ sketches: this.currentData.sketches });
-        }
-        
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
+        
+        // 스케치 정보가 있으면 표시 (loadMainResultData 후에)
+        if (this.currentData.sketches && this.currentData.sketches.length > 0) {
+            console.log('🖼️ currentData에서 스케치 정보 발견, 표시:', this.currentData.sketches);
+            this.populateMainResultForm({ sketches: this.currentData.sketches });
+        }
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
@@ -4461,6 +4463,54 @@ class SeminarPlanningApp {
         document.getElementById(`mainFileUploadArea${sketchNumber}`).classList.remove('hidden');
     }
 
+    // 메인화면 스케치 파일 다운로드
+    downloadMainFile(sketchNumber) {
+        try {
+            const previewImg = document.getElementById(`mainPreviewImage${sketchNumber}`);
+            const fileName = document.getElementById(`mainFileName${sketchNumber}`);
+            
+            if (!previewImg || !previewImg.src) {
+                this.showErrorToast('다운로드할 이미지가 없습니다.');
+                return;
+            }
+            
+            // Base64 이미지 데이터에서 파일명 추출
+            const displayFileName = fileName ? fileName.textContent : `스케치${sketchNumber}.jpg`;
+            
+            // Base64 데이터를 Blob으로 변환
+            const base64Data = previewImg.src;
+            const byteCharacters = atob(base64Data.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/jpeg' });
+            
+            // 다운로드 링크 생성
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = displayFileName;
+            
+            // 다운로드 실행
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // URL 해제
+            window.URL.revokeObjectURL(url);
+            
+            this.showSuccessToast(`${displayFileName} 파일이 다운로드되었습니다.`);
+            
+        } catch (error) {
+            console.error('파일 다운로드 오류:', error);
+            this.showErrorToast('파일 다운로드 중 오류가 발생했습니다.');
+        }
+    }
+
     // 메인화면 실시결과 데이터 가져오기
     getMainResultData() {
         return {
@@ -4517,8 +4567,8 @@ class SeminarPlanningApp {
                     return;
                 }
                 
-                console.log('ℹ️ currentData에도 스케치 정보가 없음, 폼 초기화');
-                this.clearMainResultForm();
+                console.log('ℹ️ currentData에도 스케치 정보가 없음, 기존 상태 유지');
+                // this.clearMainResultForm(); // 주석 처리하여 기존 스케치 유지
                 return;
             }
             

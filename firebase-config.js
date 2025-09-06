@@ -152,12 +152,17 @@ async function saveData(data) {
     try {
         if (useLocalStorage) {
             // 로컬 스토리지 사용
-            localStorage.setItem('seminarPlan', JSON.stringify(data));
+            const dataWithSketches = {
+                ...data,
+                sketches: data.sketches || [] // sketches 필드 추가
+            };
+            localStorage.setItem('seminarPlan', JSON.stringify(dataWithSketches));
             return { success: true, message: '로컬 스토리지에 저장되었습니다.' };
         } else {
             // Firebase 사용
             const docRef = await db.collection('seminarPlans').add({
                 ...data,
+                sketches: data.sketches || [], // sketches 필드 추가
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -247,7 +252,10 @@ async function updateData(id, data) {
             const index = allData.findIndex(item => item.id === id);
             
             if (index !== -1) {
-                allData[index].data = data;
+                allData[index].data = {
+                    ...data,
+                    sketches: data.sketches || [] // sketches 필드 추가
+                };
                 allData[index].updatedAt = new Date().toISOString();
                 localStorage.setItem('seminarPlans', JSON.stringify(allData));
                 return { success: true, message: '로컬 스토리지가 업데이트되었습니다.' };
@@ -258,6 +266,7 @@ async function updateData(id, data) {
             // Firebase 업데이트
             await db.collection('seminarPlans').doc(id).update({
                 ...data,
+                sketches: data.sketches || [], // sketches 필드 추가
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             return { success: true, message: 'Firebase가 업데이트되었습니다.' };
