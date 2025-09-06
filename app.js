@@ -3760,21 +3760,9 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 20]
                     },
                     
-                    // 2. 목표
+                    // 2. 주요 내용
                     {
-                        text: '2. 목표',
-                        fontSize: 14,
-                        bold: true,
-                        margin: [0, 0, 0, 10]
-                    },
-                    {
-                        text: resultData.objective || '미입력',
-                        margin: [0, 0, 0, 20]
-                    },
-                    
-                    // 3. 주요 내용
-                    {
-                        text: '3. 주요 내용',
+                        text: '2. 주요 내용',
                         fontSize: 14,
                         bold: true,
                         margin: [0, 0, 0, 10]
@@ -3784,9 +3772,9 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 20]
                     },
                     
-                    // 4. 향후 계획
+                    // 3. 향후 계획
                     {
-                        text: '4. 향후 계획',
+                        text: '3. 향후 계획',
                         fontSize: 14,
                         bold: true,
                         margin: [0, 0, 0, 10]
@@ -3805,8 +3793,8 @@ class SeminarPlanningApp {
                 }
             };
             
-            // 참석자 명단 데이터 가져오기
-            const attendeeList = this.getAttendeeData();
+            // 참석자 명단 데이터 가져오기 (참석여부가 Y인 대상만)
+            const attendeeList = this.getAttendeeData().filter(attendee => attendee.attendance === 'Y');
             
             // 참석자 명단 추가 (새 페이지)
             if (attendeeList && attendeeList.length > 0) {
@@ -3836,25 +3824,32 @@ class SeminarPlanningApp {
                 );
             }
             
-            // 스케치 추가 (새 페이지)
+            // 스케치 추가 (새 페이지, 첨부형식)
             if (resultData.sketches && resultData.sketches.length > 0) {
                 docDefinition.content.push(
                     { text: '', pageBreak: 'before' },
-                    { text: '[별첨 2] 세미나 스케치', style: 'header' }
+                    { text: '[별첨 2] 세미나 스케치', style: 'header' },
+                    {
+                        text: '첨부 1. 세미나 스케치 자료',
+                        fontSize: 12,
+                        bold: true,
+                        margin: [0, 10, 0, 15]
+                    }
                 );
                 
                 resultData.sketches.forEach((sketch, index) => {
                     if (sketch.title && sketch.imageData) {
                         docDefinition.content.push(
                             {
-                                text: `스케치 ${index + 1}: ${sketch.title}`,
-                                fontSize: 12,
+                                text: `${index + 1}. ${sketch.title}`,
+                                fontSize: 11,
                                 bold: true,
                                 margin: [0, 10, 0, 5]
                             },
                             {
                                 image: sketch.imageData,
                                 width: 400,
+                                alignment: 'center',
                                 margin: [0, 0, 0, 20]
                             }
                         );
@@ -4307,8 +4302,8 @@ class SeminarPlanningApp {
             return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         };
         
-        // 참석자 명단 데이터 가져오기
-        const attendeeList = this.getAttendeeData();
+        // 참석자 명단 데이터 가져오기 (참석여부가 Y인 대상만)
+        const attendeeList = this.getAttendeeData().filter(attendee => attendee.attendance === 'Y');
         
         // 참석자 명단 HTML 생성
         let attendeeTableHTML = '';
@@ -4342,23 +4337,30 @@ class SeminarPlanningApp {
             `;
         }
         
-        // 스케치 HTML 생성
+        // 스케치 HTML 생성 (첨부형식)
         let sketchHTML = '';
         if (resultData.sketches && resultData.sketches.length > 0) {
             sketchHTML = `
                 <div style="page-break-before: always;">
                     <h2>[별첨 2] 세미나 스케치</h2>
-                    ${resultData.sketches.map((sketch, index) => {
-                        if (sketch.title && sketch.imageData) {
-                            return `
-                                <div style="margin: 20px 0;">
-                                    <h3>스케치 ${index + 1}: ${safeText(sketch.title)}</h3>
-                                    <img src="${sketch.imageData}" style="max-width: 100%; height: auto; border: 1px solid #ddd;" />
-                                </div>
-                            `;
-                        }
-                        return '';
-                    }).join('')}
+                    <div style="margin: 20px 0;">
+                        <p style="font-size: 12px; margin-bottom: 15px;">
+                            <strong>첨부 1.</strong> 세미나 스케치 자료
+                        </p>
+                        ${resultData.sketches.map((sketch, index) => {
+                            if (sketch.title && sketch.imageData) {
+                                return `
+                                    <div style="margin: 15px 0; border: 1px solid #ddd; padding: 10px;">
+                                        <p style="font-size: 11px; margin: 0 0 10px 0; font-weight: bold;">
+                                            ${index + 1}. ${safeText(sketch.title)}
+                                        </p>
+                                        <img src="${sketch.imageData}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+                                    </div>
+                                `;
+                            }
+                            return '';
+                        }).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -4419,17 +4421,12 @@ class SeminarPlanningApp {
                 </div>
                 
                 <div class="content">
-                    <h2>2. 목표</h2>
-                    <div>${safeText(resultData.objective)}</div>
-                </div>
-                
-                <div class="content">
-                    <h2>3. 주요 내용</h2>
+                    <h2>2. 주요 내용</h2>
                     <div>${safeText(resultData.mainContent)}</div>
                 </div>
                 
                 <div class="content">
-                    <h2>4. 향후 계획</h2>
+                    <h2>3. 향후 계획</h2>
                     <div>${safeText(resultData.futurePlan)}</div>
                 </div>
                 
