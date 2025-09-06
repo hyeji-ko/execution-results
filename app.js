@@ -200,6 +200,34 @@ class SeminarPlanningApp {
                 this.validateDateTimeFormat(e.target);
             });
         }
+        
+        // 주요 내용 필드에 대한 특별한 처리 (PDF 실시결과 내보내기 버튼 제어)
+        const mainContentElement = document.getElementById('mainResultContent');
+        if (mainContentElement) {
+            mainContentElement.addEventListener('input', (e) => {
+                this.toggleExportResultPDFButton();
+            });
+            
+            mainContentElement.addEventListener('blur', (e) => {
+                this.toggleExportResultPDFButton();
+            });
+        }
+    }
+    
+    // PDF 실시결과 내보내기 버튼 표시/숨김 제어
+    toggleExportResultPDFButton() {
+        const mainContentElement = document.getElementById('mainResultContent');
+        const exportResultPDFButton = document.getElementById('exportResultPDF');
+        
+        if (mainContentElement && exportResultPDFButton) {
+            const hasContent = mainContentElement.value.trim().length > 0;
+            
+            if (hasContent) {
+                exportResultPDFButton.style.display = 'flex';
+            } else {
+                exportResultPDFButton.style.display = 'none';
+            }
+        }
     }
     
     // 일시 형식 검증
@@ -271,6 +299,9 @@ class SeminarPlanningApp {
         
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
+        
+        // PDF 실시결과 내보내기 버튼 상태 초기화
+        this.toggleExportResultPDFButton();
     }
 
     addDefaultRows() {
@@ -1082,6 +1113,10 @@ class SeminarPlanningApp {
             
             if (!result.success) {
                 this.showErrorToast(result.message);
+            } else {
+                // 기본 데이터 저장 성공 시 실시결과 데이터도 저장
+                console.log('📝 기본 데이터 저장 완료, 실시결과 데이터 저장 시작');
+                await this.saveMainResultData(true); // skipLoading = true
             }
             
         } catch (error) {
@@ -1678,6 +1713,9 @@ class SeminarPlanningApp {
         
         // 기본 행 추가 (직접 생성)
         this.addDefaultRows();
+        
+        // PDF 실시결과 내보내기 버튼 숨기기
+        this.toggleExportResultPDFButton();
     }
 
     // 회차 필드 업데이트
@@ -4027,6 +4065,8 @@ class SeminarPlanningApp {
                 } else {
                     console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 현재 폼 값 유지:', mainContentEl.value);
                 }
+                // PDF 실시결과 내보내기 버튼 상태 업데이트
+                this.toggleExportResultPDFButton();
             }
             
             if (futurePlanEl) {
@@ -4129,9 +4169,11 @@ class SeminarPlanningApp {
     }
 
     // 메인화면 실시결과 저장
-    async saveMainResultData() {
+    async saveMainResultData(skipLoading = false) {
         try {
-            this.showLoading(true);
+            if (!skipLoading) {
+                this.showLoading(true);
+            }
             
             // 현재 세미나 정보 가져오기
             const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
@@ -4139,7 +4181,9 @@ class SeminarPlanningApp {
             
             if (!session || !datetime) {
                 this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
-                this.showLoading(false);
+                if (!skipLoading) {
+                    this.showLoading(false);
+                }
                 return;
             }
             
@@ -4158,7 +4202,9 @@ class SeminarPlanningApp {
             // 유효성 검사
             if (!objective && !mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
                 this.showErrorToast('목표, 주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
-                this.showLoading(false);
+                if (!skipLoading) {
+                    this.showLoading(false);
+                }
                 return;
             }
             
@@ -4242,7 +4288,9 @@ class SeminarPlanningApp {
             console.error('메인화면 실시결과 저장 오류:', error);
             this.showErrorToast('메인화면 실시결과 저장 중 오류가 발생했습니다.');
         } finally {
-            this.showLoading(false);
+            if (!skipLoading) {
+                this.showLoading(false);
+            }
         }
     }
 
