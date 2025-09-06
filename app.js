@@ -286,10 +286,13 @@ class SeminarPlanningApp {
     }
 
     async populateForm() {
+        console.log('populateForm 시작 - currentData:', this.currentData);
+        
         // 참석자 데이터 마이그레이션 먼저 실행
         this.migrateAttendeeData();
         
         // 기본 정보 채우기 (목표 포함)
+        console.log('기본 정보 채우기 시작...');
         Object.keys(this.currentData).forEach(key => {
             if (key === 'session') {
                 // 회차 필드 특별 처리
@@ -303,16 +306,22 @@ class SeminarPlanningApp {
         });
 
         // 시간 계획 테이블 채우기
+        console.log('시간 계획 테이블 채우기 시작...');
         this.populateTimeTable();
+        console.log('시간 계획 테이블 채우기 완료');
         
         // 참석자 테이블 채우기
+        console.log('참석자 테이블 채우기 시작...');
         this.populateAttendeeTable();
+        console.log('참석자 테이블 채우기 완료');
         
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
+        
+        console.log('populateForm 완료');
     }
 
     addDefaultRows() {
@@ -777,6 +786,21 @@ class SeminarPlanningApp {
         const tbody = document.getElementById('timeTableBody');
         tbody.innerHTML = '';
         
+        console.log('시간 계획 데이터:', this.currentData.timeSchedule);
+        console.log('시간 계획 데이터 길이:', this.currentData.timeSchedule ? this.currentData.timeSchedule.length : 'undefined');
+        
+        if (!this.currentData.timeSchedule || !Array.isArray(this.currentData.timeSchedule)) {
+            console.error('시간 계획 데이터가 없거나 배열이 아닙니다:', this.currentData.timeSchedule);
+            return;
+        }
+        
+        if (this.currentData.timeSchedule.length === 0) {
+            console.log('시간 계획 데이터가 비어있습니다.');
+            return;
+        }
+        
+        console.log('시간 계획 테이블 렌더링 시작...');
+        
         this.currentData.timeSchedule.forEach((item, index) => {
             // 직접 행 생성 (addTimeRow() 호출하지 않음)
             const row = document.createElement('tr');
@@ -846,7 +870,11 @@ class SeminarPlanningApp {
             
             // 이벤트 리스너 추가 (모바일 환경 고려)
             this.bindTimeRowEvents(row, index);
+            
+            console.log(`시간 계획 행 추가됨: index=${index}, type=${item.type}`);
         });
+        
+        console.log('시간 계획 테이블 렌더링 완료. 총 행 수:', tbody.children.length);
     }
     
     // 시간 계획 행 이벤트 바인딩 (모바일 환경 고려)
@@ -919,6 +947,19 @@ class SeminarPlanningApp {
         this.migrateAttendeeData();
         
         console.log('참석자 데이터 전체:', this.currentData.attendeeList);
+        console.log('참석자 데이터 길이:', this.currentData.attendeeList ? this.currentData.attendeeList.length : 'undefined');
+        
+        if (!this.currentData.attendeeList || !Array.isArray(this.currentData.attendeeList)) {
+            console.error('참석자 데이터가 없거나 배열이 아닙니다:', this.currentData.attendeeList);
+            return;
+        }
+        
+        if (this.currentData.attendeeList.length === 0) {
+            console.log('참석자 데이터가 비어있습니다.');
+            return;
+        }
+        
+        console.log('참석자 테이블 렌더링 시작...');
         
         this.currentData.attendeeList.forEach((item, index) => {
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
@@ -1139,7 +1180,13 @@ class SeminarPlanningApp {
                     this.toggleCustomWorkInput(index, e.target.value);
                 });
             }
+            
+            // 행을 tbody에 추가
+            tbody.appendChild(row);
+            console.log(`참석자 행 추가됨: index=${index}, name=${item.name}`);
         });
+        
+        console.log('참석자 테이블 렌더링 완료. 총 행 수:', tbody.children.length);
     }
 
     async saveData() {
