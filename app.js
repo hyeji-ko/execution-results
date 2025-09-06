@@ -3839,8 +3839,12 @@ class SeminarPlanningApp {
             this.showLoading(true);
             
             // 현재 세미나 정보 가져오기
-            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const sessionSelect = document.getElementById('sessionSelect').value;
+            const sessionInput = document.getElementById('sessionInput').value;
+            const session = sessionSelect || sessionInput;
             const datetime = document.getElementById('datetime').value;
+            
+            console.log('🔍 세미나 정보 조회:', { session, datetime });
             
             if (!session || !datetime) {
                 this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
@@ -3850,17 +3854,35 @@ class SeminarPlanningApp {
             
             // 실시결과 데이터 조회
             const results = await loadResultData();
+            console.log('📊 전체 실시결과 데이터:', results);
+            
             let resultData = null;
             if (results && results.length > 0) {
-                resultData = results.find(result => 
-                    result.session === session && result.datetime === datetime
-                );
+                resultData = results.find(result => {
+                    console.log('🔍 비교 중:', { 
+                        resultSession: result.session, 
+                        currentSession: session,
+                        resultDatetime: result.datetime, 
+                        currentDatetime: datetime,
+                        sessionMatch: result.session === session,
+                        datetimeMatch: result.datetime === datetime
+                    });
+                    return result.session === session && result.datetime === datetime;
+                });
             }
             
+            console.log('✅ 찾은 실시결과 데이터:', resultData);
+            
+            // 실시결과 데이터가 없어도 기본 정보로 PDF 생성
             if (!resultData) {
-                this.showErrorToast('해당 세미나의 실시결과가 등록되지 않았습니다.');
-                this.showLoading(false);
-                return;
+                console.log('⚠️ 실시결과 데이터가 없음. 기본 정보로 PDF 생성');
+                resultData = {
+                    session: session,
+                    datetime: datetime,
+                    mainContent: '실시결과가 등록되지 않았습니다.',
+                    futurePlan: '향후 계획이 등록되지 않았습니다.',
+                    sketches: []
+                };
             }
             
             // PDFMake 라이브러리 로딩 대기 및 확인
@@ -3897,7 +3919,7 @@ class SeminarPlanningApp {
             const session = resultData.session;
             const datetime = resultData.datetime;
             const location = document.getElementById('location').value || '미입력';
-            const attendees = document.getElementById('attendees').value || '미입력';
+            const attendeeTarget = document.getElementById('attendees').value || '미입력';
             
             // PDF 문서 정의
             const docDefinition = {
@@ -3940,7 +3962,7 @@ class SeminarPlanningApp {
                                 width: 'auto'
                             },
                             {
-                                text: attendees,
+                                text: attendeeTarget,
                                 width: '*'
                             }
                         ],
@@ -3980,15 +4002,18 @@ class SeminarPlanningApp {
                 }
             };
             
+            // 참석자 명단 데이터 가져오기
+            const attendeeList = this.getAttendeeData();
+            
             // 참석자 명단 추가 (새 페이지)
-            if (this.attendees && this.attendees.length > 0) {
+            if (attendeeList && attendeeList.length > 0) {
                 const attendeeTable = {
                     table: {
                         headerRows: 1,
                         widths: ['auto', '*', '*', '*', '*'],
                         body: [
                             ['No', '성명', '직급', '소속', '업무'],
-                            ...this.attendees.map((attendee, index) => [
+                            ...attendeeList.map((attendee, index) => [
                                 (index + 1).toString(),
                                 attendee.name || '',
                                 attendee.position || '',
@@ -4073,12 +4098,39 @@ class SeminarPlanningApp {
         }
     }
 
+    // 참석자 데이터 가져오기
+    getAttendeeData() {
+        const attendeeRows = document.querySelectorAll('#attendeeTableBody tr');
+        const attendees = [];
+        
+        attendeeRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {
+                const name = cells[1].querySelector('input')?.value || '';
+                const position = cells[2].querySelector('input')?.value || '';
+                const department = cells[3].querySelector('input')?.value || '';
+                const work = cells[4].querySelector('input')?.value || '';
+                
+                if (name.trim()) {
+                    attendees.push({
+                        name: name.trim(),
+                        position: position.trim(),
+                        department: department.trim(),
+                        work: work.trim()
+                    });
+                }
+            }
+        });
+        
+        return attendees;
+    }
+
     // 실시결과 PDF용 HTML 콘텐츠 생성
     generateResultPDFHTML(resultData) {
         const session = resultData.session;
         const datetime = resultData.datetime;
         const location = document.getElementById('location').value || '미입력';
-        const attendees = document.getElementById('attendees').value || '미입력';
+        const attendeeTarget = document.getElementById('attendees').value || '미입력';
         
         // 안전한 텍스트 처리 함수
         const safeText = (text) => {
@@ -4086,9 +4138,12 @@ class SeminarPlanningApp {
             return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         };
         
+        // 참석자 명단 데이터 가져오기
+        const attendeeList = this.getAttendeeData();
+        
         // 참석자 명단 HTML 생성
         let attendeeTableHTML = '';
-        if (this.attendees && this.attendees.length > 0) {
+        if (attendeeList && attendeeList.length > 0) {
             attendeeTableHTML = `
                 <div style="page-break-before: always;">
                     <h2>[별첨 1] 세미나 참석명단</h2>
@@ -4103,7 +4158,7 @@ class SeminarPlanningApp {
                             </tr>
                         </thead>
                         <tbody>
-                            ${this.attendees.map((attendee, index) => `
+                            ${attendeeList.map((attendee, index) => `
                                 <tr>
                                     <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
                                     <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.name)}</td>
@@ -4191,7 +4246,7 @@ class SeminarPlanningApp {
                 <div class="overview">
                     <h2>1. 개요</h2>
                     <div class="overview-item">□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</div>
-                    <div class="overview-item">□ 참석 인력: ${safeText(attendees)}</div>
+                    <div class="overview-item">□ 참석 인력: ${safeText(attendeeTarget)}</div>
                 </div>
                 
                 <div class="content">
