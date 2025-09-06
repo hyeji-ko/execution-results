@@ -3754,6 +3754,14 @@ class SeminarPlanningApp {
             const docDefinition = {
                 pageSize: 'A4',
                 pageMargins: [40, 60, 40, 60],
+                footer: function(currentPage, pageCount) {
+                    return {
+                        text: `- ${currentPage} -`,
+                        alignment: 'center',
+                        fontSize: 10,
+                        margin: [0, 10, 0, 0]
+                    };
+                },
                 content: [
                     // 제목
                     {
@@ -3774,7 +3782,7 @@ class SeminarPlanningApp {
                     {
                         columns: [
                             {
-                                text: '□ 일시/장소:',
+                                text: '&nbsp;&nbsp;&nbsp;&nbsp;□ 일시/장소:',
                                 width: 'auto'
                             },
                             {
@@ -3787,7 +3795,7 @@ class SeminarPlanningApp {
                     {
                         columns: [
                             {
-                                text: '□ 참석 인력:',
+                                text: '&nbsp;&nbsp;&nbsp;&nbsp;□ 참석 인력:',
                                 width: 'auto'
                             },
                             {
@@ -3806,8 +3814,9 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 10]
                     },
                     {
-                        text: resultData.mainContent || '미입력',
-                        margin: [0, 0, 0, 20]
+                        text: this.parseMainContent(resultData.mainContent),
+                        margin: [0, 0, 0, 20],
+                        preserveLeadingSpaces: true
                     },
                     
                     // 3. 향후 계획
@@ -3818,8 +3827,9 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 10]
                     },
                     {
-                        text: resultData.futurePlan || '미입력',
-                        margin: [0, 0, 0, 20]
+                        text: this.parseMainContent(resultData.futurePlan),
+                        margin: [0, 0, 0, 20],
+                        preserveLeadingSpaces: true
                     }
                 ],
                 styles: {
@@ -3841,13 +3851,19 @@ class SeminarPlanningApp {
                         headerRows: 1,
                         widths: ['auto', '*', '*', '*', '*'],
                         body: [
-                            ['No', '성명', '직급', '소속', '업무'],
+                            [
+                                { text: 'No', alignment: 'center' },
+                                { text: '성명', alignment: 'center' },
+                                { text: '직급', alignment: 'center' },
+                                { text: '소속', alignment: 'center' },
+                                { text: '업무', alignment: 'left' }
+                            ],
                             ...attendeeList.map((attendee, index) => [
-                                (index + 1).toString(),
-                                attendee.name || '',
-                                attendee.position || '',
-                                attendee.department || '',
-                                attendee.work || ''
+                                { text: (index + 1).toString(), alignment: 'center' },
+                                { text: attendee.name || '', alignment: 'center' },
+                                { text: attendee.position || '', alignment: 'center' },
+                                { text: attendee.department || '', alignment: 'center' },
+                                { text: attendee.work || '', alignment: 'left' }
                             ])
                         ]
                     },
@@ -3867,12 +3883,6 @@ class SeminarPlanningApp {
                 docDefinition.content.push(
                     { text: '', pageBreak: 'before' },
                     { text: '[별첨 2] 세미나 스케치', style: 'header' },
-                    {
-                        text: '첨부 1. 세미나 스케치 자료',
-                        fontSize: 12,
-                        bold: true,
-                        margin: [0, 10, 0, 15]
-                    }
                 );
                 
                 resultData.sketches.forEach((sketch, index) => {
@@ -3942,6 +3952,35 @@ class SeminarPlanningApp {
         }
     }
 
+    // 주요 내용 텍스트 파싱 함수
+    parseMainContent(text) {
+        if (!text) return '미입력';
+        
+        // □ 구분값으로 분리하여 각각을 새로운 라인으로 처리
+        const sections = text.split('□').filter(section => section.trim());
+        
+        const parsedSections = sections.map(section => {
+            const trimmedSection = section.trim();
+            
+            // - 가 있는 경우 4칸 띄우고 다음 라인으로 처리
+            if (trimmedSection.includes('-')) {
+                const subSections = trimmedSection.split('-').filter(sub => sub.trim());
+                return subSections.map((sub, index) => {
+                    const trimmedSub = sub.trim();
+                    if (index === 0) {
+                        return `□ ${trimmedSub}`;
+                    } else {
+                        return `    - ${trimmedSub}`;
+                    }
+                }).join('\n');
+            } else {
+                return `□ ${trimmedSection}`;
+            }
+        });
+        
+        return parsedSections.join('\n');
+    }
+
     // 참석자 데이터 가져오기
     getAttendeeData() {
         const attendeeRows = document.querySelectorAll('#attendeeTableBody tr');
@@ -3951,9 +3990,28 @@ class SeminarPlanningApp {
             const cells = row.querySelectorAll('td');
             if (cells.length >= 6) { // 참석여부 컬럼 추가로 6개 컬럼
                 const name = cells[1].querySelector('input')?.value || '';
-                const position = cells[2].querySelector('input')?.value || '';
-                const department = cells[3].querySelector('input')?.value || '';
-                const work = cells[4].querySelector('input')?.value || '';
+                
+                // 직급 필드 처리 (select 또는 직접입력)
+                let position = cells[2].querySelector('select')?.value || '';
+                if (position === '직접입력') {
+                    const customPosition = cells[2].querySelector('input[data-field="position-custom"]')?.value || '';
+                    position = customPosition;
+                }
+                
+                // 소속 필드 처리 (select 또는 직접입력)
+                let department = cells[3].querySelector('select')?.value || '';
+                if (department === '직접입력') {
+                    const customDepartment = cells[3].querySelector('input[data-field="department-custom"]')?.value || '';
+                    department = customDepartment;
+                }
+                
+                // 업무 필드 처리 (select 또는 직접입력)
+                let work = cells[4].querySelector('select')?.value || '';
+                if (work === '직접입력') {
+                    const customWork = cells[4].querySelector('input[data-field="work-custom"]')?.value || '';
+                    work = customWork;
+                }
+                
                 const attendance = cells[5].querySelector('select')?.value || 'Y'; // 참석여부 값 가져오기
                 
                 if (name.trim()) {
@@ -4362,21 +4420,21 @@ class SeminarPlanningApp {
                     <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                         <thead>
                             <tr style="background-color: #f5f5f5;">
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">No</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">성명</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">직급</th>
-                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">소속</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">No</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">성명</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">직급</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">소속</th>
                                 <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">업무</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${attendeeList.map((attendee, index) => `
                                 <tr>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.name)}</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.position)}</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.department)}</td>
-                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.work)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${index + 1}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${safeText(attendee.name)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${safeText(attendee.position)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${safeText(attendee.department)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">${safeText(attendee.work)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -4456,6 +4514,12 @@ class SeminarPlanningApp {
                     @media print {
                         body { margin: 0; }
                         .page-break { page-break-before: always; }
+                        @page {
+                            @bottom-center {
+                                content: "- " counter(page) " -";
+                                font-size: 10px;
+                            }
+                        }
                     }
                 </style>
             </head>
@@ -4470,12 +4534,12 @@ class SeminarPlanningApp {
                 
                 <div class="content">
                     <h2>2. 주요 내용</h2>
-                    <div>${safeText(resultData.mainContent)}</div>
+                    <div style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.mainContent))}</div>
                 </div>
                 
                 <div class="content">
                     <h2>3. 향후 계획</h2>
-                    <div>${safeText(resultData.futurePlan)}</div>
+                    <div style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.futurePlan))}</div>
                 </div>
                 
                 ${attendeeTableHTML}
