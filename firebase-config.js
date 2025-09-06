@@ -200,9 +200,12 @@ async function loadData() {
             if (!snapshot.empty) {
                 const plans = [];
                 snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    console.log(`🔥 Firebase 문서 ${doc.id} 데이터:`, docData);
+                    console.log(`🔥 참석자 데이터:`, docData.attendeeList);
                     plans.push({
                         id: doc.id,
-                        ...doc.data()
+                        ...docData
                     });
                 });
                 
@@ -319,6 +322,7 @@ async function loadAllPlans() {
             snapshot.forEach(doc => {
                 const docData = doc.data();
                 console.log(`🔥 Firebase 문서 ${doc.id}:`, docData);
+                console.log(`🔥 참석자 데이터 (loadAllPlans):`, docData.attendeeList);
                 plans.push({
                     id: doc.id,
                     ...docData

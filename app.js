@@ -1401,6 +1401,7 @@ class SeminarPlanningApp {
             const departmentCustomInput = row.querySelector('input[data-field="department-custom"]');
             const workSelect = row.querySelector('select[data-field="work"]');
             const workCustomInput = row.querySelector('input[data-field="work-custom"]');
+            const attendanceSelect = row.querySelector('select[data-field="attendance"]');
             
             // 직급 데이터 수집 (select 또는 custom input에서)
             let position = '';
@@ -1426,11 +1427,17 @@ class SeminarPlanningApp {
                 work = workCustomInput.value;
             }
             
+            // 참석여부 데이터 수집
+            const attendance = attendanceSelect?.value || 'Y';
+            
+            console.log(`참석자 데이터 수집: index=${index}, name=${nameInput?.value}, attendance=${attendance}`);
+            
             this.currentData.attendeeList.push({
                 name: nameInput?.value || '',
                 position: position,
                 department: department,
-                work: work
+                work: work,
+                attendance: attendance
             });
         });
     }
