@@ -1108,6 +1108,7 @@ class SeminarPlanningApp {
         
         this.currentData.attendeeList.forEach((item, index) => {
             console.log(`참석자 아이템 처리 중: index=${index}, item=`, item);
+            console.log(`참석여부 확인: index=${index}, name=${item.name}, attendance=${item.attendance}`);
             
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
             const row = document.createElement('tr');
@@ -1915,7 +1916,7 @@ class SeminarPlanningApp {
                         position: this.ensureStringValue(item.position),
                         department: this.ensureStringValue(item.department),
                         work: this.ensureStringValue(item.work),
-                        attendance: this.ensureStringValue(item.attendance) || 'N' // 참석여부 추가
+                        attendance: item.attendance || 'N' // 참석여부 추가 (ensureStringValue 제거)
                     })) : [],
                     sketches: existingData.data.sketches || [] // 스케치 정보 추가
                 };
@@ -1924,6 +1925,14 @@ class SeminarPlanningApp {
                 console.log('📋 시간 계획 데이터:', normalizedData.timeSchedule);
                 console.log('📋 참석자 데이터:', normalizedData.attendeeList);
                 console.log('📋 스케치 데이터:', normalizedData.sketches);
+                
+                // 참석여부 상세 로그
+                if (normalizedData.attendeeList && normalizedData.attendeeList.length > 0) {
+                    console.log('📋 참석여부 상세 확인:');
+                    normalizedData.attendeeList.forEach((attendee, idx) => {
+                        console.log(`  [${idx}] ${attendee.name}: attendance=${attendee.attendance}`);
+                    });
+                }
                 
                 // 메인 화면에 데이터 로드
                 this.currentData = normalizedData;
@@ -1978,7 +1987,8 @@ class SeminarPlanningApp {
                         name: this.ensureStringValue(item.name),
                         position: this.ensureStringValue(item.position),
                         department: this.ensureStringValue(item.department),
-                        work: this.ensureStringValue(item.work)
+                        work: this.ensureStringValue(item.work),
+                        attendance: item.attendance || 'N' // 참석여부 추가
                     })) : []
                 };
                 
