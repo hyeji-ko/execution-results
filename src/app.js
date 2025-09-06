@@ -16,7 +16,7 @@ class SeminarPlanningApp {
     constructor() {
         this.currentData = {
             session: '',
-            objective: '',
+            goal: '',
             datetime: '',
             location: '',
             attendees: '',
@@ -148,7 +148,7 @@ class SeminarPlanningApp {
 
     bindInputEvents() {
         // 기본 정보 입력 필드들
-        const basicFields = ['objective', 'location', 'attendees'];
+        const basicFields = ['goal', 'location', 'attendees'];
         basicFields.forEach(field => {
             const element = document.getElementById(field);
             if (element) {
@@ -225,7 +225,7 @@ class SeminarPlanningApp {
                 // 기본 데이터로 초기화
                 this.currentData = {
                     session: '',
-                    objective: '',
+                    goal: '',
                     datetime: '',
                     location: '',
                     attendees: '',
@@ -240,7 +240,7 @@ class SeminarPlanningApp {
             // 오류 발생 시에도 기본값으로 초기화
             this.currentData = {
                 session: '',
-                objective: '',
+                goal: '',
                 datetime: '',
                 location: '',
                 attendees: '',
@@ -258,7 +258,7 @@ class SeminarPlanningApp {
             console.warn('currentData가 없습니다. 기본값으로 초기화합니다.');
             this.currentData = {
                 session: '',
-                objective: '',
+                goal: '',
                 datetime: '',
                 location: '',
                 attendees: '',
@@ -269,14 +269,18 @@ class SeminarPlanningApp {
 
         // 기본 정보 채우기
         Object.keys(this.currentData).forEach(key => {
-            if (key === 'session') {
-                // 회차 필드 특별 처리
-                this.populateSessionField();
-            } else {
-                const element = document.getElementById(key);
-                if (element && typeof this.currentData[key] === 'string') {
-                    element.value = this.currentData[key];
+            try {
+                if (key === 'session') {
+                    // 회차 필드 특별 처리
+                    this.populateSessionField();
+                } else {
+                    const element = document.getElementById(key);
+                    if (element && typeof this.currentData[key] === 'string') {
+                        element.value = this.currentData[key];
+                    }
                 }
+            } catch (error) {
+                console.warn(`필드 ${key} 채우기 중 오류:`, error);
             }
         });
 
@@ -292,7 +296,7 @@ class SeminarPlanningApp {
         if (!this.currentData) {
             this.currentData = {
                 session: '',
-                objective: '',
+                goal: '',
                 datetime: '',
                 location: '',
                 attendees: '',
@@ -1233,7 +1237,7 @@ class SeminarPlanningApp {
     collectFormData() {
         // 기본 정보 수집
         this.currentData.session = this.currentData.session || '';
-        this.currentData.objective = document.getElementById('objective').value;
+        this.currentData.goal = document.getElementById('goal').value;
         this.currentData.datetime = document.getElementById('datetime').value;
         this.currentData.location = document.getElementById('location').value;
         this.currentData.attendees = document.getElementById('attendees').value;
@@ -1394,7 +1398,7 @@ class SeminarPlanningApp {
                 const normalizedData = result.data.map(item => ({
                     ...item,
                     session: this.ensureStringValue(item.session),
-                    objective: this.ensureStringValue(item.objective),
+                    goal: this.ensureStringValue(item.goal),
                     datetime: this.ensureStringValue(item.datetime),
                     location: this.ensureStringValue(item.location),
                     attendees: this.ensureStringValue(item.attendees)
@@ -1452,7 +1456,7 @@ class SeminarPlanningApp {
             // 모바일 호환성을 위한 데이터 처리
             const session = this.ensureStringValue(item.session) || '미입력';
             const datetime = this.ensureStringValue(item.datetime) || '미입력';
-            const objective = this.ensureStringValue(item.objective) || '미입력';
+            const goal = this.ensureStringValue(item.goal) || '미입력';
             const location = this.ensureStringValue(item.location) || '미입력';
             const attendees = this.ensureStringValue(item.attendees) || '미입력';
             
@@ -1477,8 +1481,8 @@ class SeminarPlanningApp {
                 </td>
                 <td class="px-6 py-4">
                     <div class="max-w-xs">
-                        <p class="text-gray-800 truncate group-hover:text-gray-900 transition-colors duration-200" title="${this.escapeHtml(objective)}">
-                            ${this.escapeHtml(objective)}
+                        <p class="text-gray-800 truncate group-hover:text-gray-900 transition-colors duration-200" title="${this.escapeHtml(goal)}">
+                            ${this.escapeHtml(goal)}
                         </p>
                     </div>
                 </td>
@@ -1521,7 +1525,7 @@ class SeminarPlanningApp {
                 const normalizedData = {
                     ...existingData.data,
                     session: this.ensureStringValue(existingData.data.session),
-                    objective: this.ensureStringValue(existingData.data.objective),
+                    goal: this.ensureStringValue(existingData.data.goal),
                     datetime: this.ensureStringValue(existingData.data.datetime),
                     location: this.ensureStringValue(existingData.data.location),
                     attendees: this.ensureStringValue(existingData.data.attendees),
@@ -1582,7 +1586,7 @@ class SeminarPlanningApp {
                 const normalizedData = {
                     ...result.data,
                     session: this.ensureStringValue(result.data.session),
-                    objective: this.ensureStringValue(result.data.objective),
+                    goal: this.ensureStringValue(result.data.goal),
                     datetime: this.ensureStringValue(result.data.datetime),
                     location: this.ensureStringValue(result.data.location),
                     attendees: this.ensureStringValue(result.data.attendees),
@@ -1676,7 +1680,7 @@ class SeminarPlanningApp {
         // 현재 데이터 초기화
         this.currentData = {
             session: '',
-            objective: '',
+            goal: '',
             datetime: '',
             location: '',
             attendees: '',
@@ -1692,7 +1696,7 @@ class SeminarPlanningApp {
         document.getElementById('sessionInput').value = '';
         document.getElementById('sessionSelect').style.display = 'block';
         document.getElementById('sessionInput').classList.add('hidden');
-        document.getElementById('objective').value = '';
+        document.getElementById('goal').value = '';
         document.getElementById('datetime').value = '';
         document.getElementById('location').value = '';
         document.getElementById('attendees').value = '';
@@ -1733,30 +1737,12 @@ class SeminarPlanningApp {
 
     // 회차 필드 데이터 채우기
     populateSessionField() {
-        const selectElement = document.getElementById('sessionSelect');
-        const inputElement = document.getElementById('sessionInput');
+        const selectElement = document.getElementById('session');
         
-        if (this.currentData.session) {
-            const sessionOptions = ['제1회', '제2회', '제3회', '제4회', '제5회', '제6회', '제7회', '제8회', '제9회', '제10회'];
-            
-            if (sessionOptions.includes(this.currentData.session)) {
-                // 미리 정의된 옵션인 경우
-                selectElement.value = this.currentData.session;
-                selectElement.style.display = 'block';
-                inputElement.classList.add('hidden');
-            } else {
-                // 직접 입력된 값인 경우
-                selectElement.value = '직접입력';
-                selectElement.style.display = 'none';
-                inputElement.value = this.currentData.session;
-                inputElement.classList.remove('hidden');
-            }
-        } else {
-            // 빈 값인 경우
+        if (selectElement && this.currentData.session) {
+            selectElement.value = this.currentData.session;
+        } else if (selectElement) {
             selectElement.value = '';
-            selectElement.style.display = 'block';
-            inputElement.value = '';
-            inputElement.classList.add('hidden');
         }
     }
 
@@ -1786,7 +1772,7 @@ class SeminarPlanningApp {
         document.getElementById('sessionInput').classList.add('hidden');
         
         // 기본 정보 필드 초기화
-        document.getElementById('objective').value = '';
+        document.getElementById('goal').value = '';
         document.getElementById('datetime').value = '';
         document.getElementById('location').value = '';
         document.getElementById('attendees').value = '';
@@ -1796,7 +1782,7 @@ class SeminarPlanningApp {
         
         // 현재 데이터의 입력 필드 값만 초기화 (저장된 데이터는 유지)
         this.currentData.session = '';
-        this.currentData.objective = '';
+        this.currentData.goal = '';
         this.currentData.datetime = '';
         this.currentData.location = '';
         this.currentData.attendees = '';
@@ -2013,7 +1999,7 @@ class SeminarPlanningApp {
                     
                     // 기본 정보
                     { text: '1. 목표', style: 'sectionHeader', margin: [0, 0, 0, 5] },
-                    { text: '    □ ' + (safeText(this.currentData.objective) || '미입력'), style: 'tableCell', margin: [0, 0, 0, 10] },
+                    { text: '    □ ' + (safeText(this.currentData.goal) || '미입력'), style: 'tableCell', margin: [0, 0, 0, 10] },
                     
                     { text: '2. 일시/장소', style: 'sectionHeader', margin: [0, 0, 0, 5] },
                     { text: '    □ ' + ((formatDateTime(safeText(this.currentData.datetime)) || '미입력') + ' / ' + (safeText(this.currentData.location) || '미입력')), style: 'tableCell', margin: [0, 0, 0, 10] },
@@ -2249,9 +2235,9 @@ class SeminarPlanningApp {
         };
         
         // 목표 필드에서 □ 문자를 만나면 다음 라인으로 처리하는 함수 (HTML용)
-        const formatObjectiveHTML = (objective) => {
-            if (!objective) return '';
-            const text = String(objective);
+        const formatObjectiveHTML = (goal) => {
+            if (!goal) return '';
+            const text = String(goal);
             
             // □ 문자를 기준으로 분할
             const parts = text.split('□');
@@ -2443,7 +2429,7 @@ class SeminarPlanningApp {
     
     <div class="section">
         <h2>1. 목표</h2>
-        <p class="info-content">${formatObjectiveHTML(safeText(this.currentData.objective))}</p>
+        <p class="info-content">${formatObjectiveHTML(safeText(this.currentData.goal))}</p>
         
         <h2>2. 일시/장소</h2>
         <p class="info-content">&nbsp;&nbsp;&nbsp;&nbsp;□ ${formatDateTime(safeText(this.currentData.datetime))} / ${safeText(this.currentData.location)}</p>
@@ -2826,7 +2812,7 @@ class SeminarPlanningApp {
         // 기본 정보
         data.push(['1. 기본 정보']);
         data.push(['회차', seminar.session || '']);
-        data.push(['목표', seminar.objective || '']);
+        data.push(['목표', seminar.goal || '']);
         data.push(['일시', seminar.datetime || '']);
         data.push(['장소', seminar.location || '']);
         data.push(['참석 대상', seminar.attendees || '']);
@@ -2887,7 +2873,7 @@ class SeminarPlanningApp {
             // 기본 정보
             data.push(['1. 기본 정보']);
             data.push(['회차', seminar.session || '']);
-            data.push(['목표', seminar.objective || '']);
+            data.push(['목표', seminar.goal || '']);
             data.push(['일시', seminar.datetime || '']);
             data.push(['장소', seminar.location || '']);
             data.push(['참석 대상', seminar.attendees || '']);
@@ -2945,7 +2931,7 @@ class SeminarPlanningApp {
             data.push([
                 seminar.session || '',
                 seminar.datetime || '',
-                seminar.objective || '',
+                seminar.goal || '',
                 seminar.location || '',
                 seminar.attendees || '',
                 seminar.timeSchedule ? seminar.timeSchedule.length : 0,
@@ -3123,7 +3109,7 @@ class SeminarPlanningApp {
         console.log('📊 단일 세미나 파싱 시작, 데이터 길이:', data.length);
         const seminarData = {
             session: '',
-            objective: '',
+            goal: '',
             datetime: '',
             location: '',
             attendees: '',
@@ -3170,8 +3156,8 @@ class SeminarPlanningApp {
                     seminarData.session = String(row[1]).trim();
                     console.log('📋 회차 파싱:', seminarData.session);
                 } else if (firstCell === '목표' && row[1]) {
-                    seminarData.objective = String(row[1]).trim();
-                    console.log('📋 목표 파싱:', seminarData.objective);
+                    seminarData.goal = String(row[1]).trim();
+                    console.log('📋 목표 파싱:', seminarData.goal);
                 } else if (firstCell === '일시' && row[1]) {
                     seminarData.datetime = String(row[1]).trim();
                     console.log('📋 일시 파싱:', seminarData.datetime);
@@ -3299,7 +3285,7 @@ class SeminarPlanningApp {
                 
                 currentSeminar = {
                     session: '',
-                    objective: '',
+                    goal: '',
                     datetime: '',
                     location: '',
                     attendees: '',
@@ -3336,8 +3322,8 @@ class SeminarPlanningApp {
                     currentSeminar.session = String(row[1]).trim();
                     console.log('📋 회차 파싱:', currentSeminar.session, '행 번호:', i);
                 } else if (firstCell === '목표' && row[1]) {
-                    currentSeminar.objective = String(row[1]).trim();
-                    console.log('📋 목표 파싱:', currentSeminar.objective, '행 번호:', i);
+                    currentSeminar.goal = String(row[1]).trim();
+                    console.log('📋 목표 파싱:', currentSeminar.goal, '행 번호:', i);
                 } else if (firstCell === '일시' && row[1]) {
                     currentSeminar.datetime = String(row[1]).trim();
                     console.log('📋 일시 파싱:', currentSeminar.datetime, '행 번호:', i);
@@ -3521,7 +3507,7 @@ class SeminarPlanningApp {
             // 현재 데이터 초기화
             this.currentData = {
                 session: '',
-                objective: '',
+                goal: '',
                 datetime: '',
                 location: '',
                 attendees: '',
@@ -3566,7 +3552,7 @@ class SeminarPlanningApp {
                     // 현재 데이터 초기화
                     this.currentData = {
                         session: '',
-                        objective: '',
+                        goal: '',
                         datetime: '',
                         location: '',
                         attendees: '',
@@ -3588,7 +3574,7 @@ class SeminarPlanningApp {
                 // 현재 데이터 초기화
                 this.currentData = {
                     session: '',
-                    objective: '',
+                    goal: '',
                     datetime: '',
                     location: '',
                     attendees: '',

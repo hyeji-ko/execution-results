@@ -6,12 +6,12 @@ import { SeminarPlanningApp } from './app.js';
 
 // Firebase 설정
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_API_KEY,
-    authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_APP_ID
+    apiKey: import.meta.env.VITE_API_KEY || "AIzaSyDT0Uv6LSMfD5b8ykB0ch4N7EvpF4-chTM",
+    authDomain: import.meta.env.VITE_AUTH_DOMAIN || "execution-results.firebaseapp.com",
+    projectId: import.meta.env.VITE_PROJECT_ID || "execution-results",
+    storageBucket: import.meta.env.VITE_STORAGE_BUCKET || "execution-results.firebasestorage.app",
+    messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID || "449225654732",
+    appId: import.meta.env.VITE_APP_ID || "1:449225654732:web:4a99d2c54e6c9dda621d69"
 };
 
 // Firebase 초기화
