@@ -120,6 +120,9 @@ class SeminarPlanningApp {
         // 조회 버튼
         document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
         
+        // 실시결과 등록 버튼
+        document.getElementById('addResultBtn').addEventListener('click', () => this.showResultModal());
+        
         // 시간 계획 행 추가
         document.getElementById('addTimeRow').addEventListener('click', () => this.addTimeRow());
         
@@ -128,6 +131,15 @@ class SeminarPlanningApp {
         
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
+        
+        // 실시결과 모달 관련 이벤트들
+        document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
+        document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModal());
+        document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
+        document.getElementById('resultSessionSelect').addEventListener('change', () => this.updateResultSession());
+        document.getElementById('sketchFile').addEventListener('change', (e) => this.handleFileUpload(e));
+        document.getElementById('removeFile').addEventListener('click', () => this.removeFile());
+        document.getElementById('fileUploadArea').addEventListener('click', () => document.getElementById('sketchFile').click());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -3510,6 +3522,179 @@ class SeminarPlanningApp {
         } catch (error) {
             console.error('데이터 삭제 오류:', error);
             this.showErrorToast(`데이터 삭제 실패: ${error.message}`);
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    // 실시결과 모달 표시
+    async showResultModal() {
+        try {
+            // 기존 세미나 목록을 불러와서 선택 옵션에 추가
+            await this.loadSeminarsForResult();
+            
+            // 모달 표시
+            document.getElementById('resultModal').classList.remove('hidden');
+            
+            // 폼 초기화
+            this.resetResultForm();
+        } catch (error) {
+            console.error('실시결과 모달 표시 오류:', error);
+            this.showErrorToast('모달을 표시하는 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 실시결과 모달 닫기
+    closeResultModal() {
+        document.getElementById('resultModal').classList.add('hidden');
+        this.resetResultForm();
+    }
+
+    // 실시결과 폼 초기화
+    resetResultForm() {
+        document.getElementById('resultSessionSelect').value = '';
+        document.getElementById('resultDatetime').value = '';
+        document.getElementById('resultMainContent').value = '';
+        document.getElementById('resultFuturePlan').value = '';
+        document.getElementById('sketchTitle').value = '';
+        document.getElementById('sketchFile').value = '';
+        document.getElementById('filePreview').classList.add('hidden');
+        document.getElementById('fileUploadArea').classList.remove('hidden');
+    }
+
+    // 실시결과용 세미나 목록 로드
+    async loadSeminarsForResult() {
+        try {
+            const seminars = await loadData();
+            const select = document.getElementById('resultSessionSelect');
+            
+            // 기존 옵션 제거 (첫 번째 옵션 제외)
+            select.innerHTML = '<option value="">세미나를 선택하세요</option>';
+            
+            if (seminars && seminars.length > 0) {
+                seminars.forEach(seminar => {
+                    const option = document.createElement('option');
+                    option.value = seminar.session + '|' + seminar.datetime;
+                    option.textContent = `${seminar.session} - ${seminar.datetime}`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('세미나 목록 로드 오류:', error);
+        }
+    }
+
+    // 실시결과 세미나 선택 업데이트
+    updateResultSession() {
+        const select = document.getElementById('resultSessionSelect');
+        const datetimeInput = document.getElementById('resultDatetime');
+        
+        if (select.value) {
+            const [session, datetime] = select.value.split('|');
+            datetimeInput.value = datetime;
+        } else {
+            datetimeInput.value = '';
+        }
+    }
+
+    // 파일 업로드 처리
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // 파일 타입 검증
+            if (!file.type.startsWith('image/')) {
+                this.showErrorToast('이미지 파일만 업로드 가능합니다.');
+                return;
+            }
+            
+            // 파일 크기 검증 (5MB 제한)
+            if (file.size > 5 * 1024 * 1024) {
+                this.showErrorToast('파일 크기는 5MB를 초과할 수 없습니다.');
+                return;
+            }
+            
+            // 미리보기 표시
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('filePreview').classList.remove('hidden');
+                document.getElementById('fileUploadArea').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 파일 제거
+    removeFile() {
+        document.getElementById('sketchFile').value = '';
+        document.getElementById('filePreview').classList.add('hidden');
+        document.getElementById('fileUploadArea').classList.remove('hidden');
+    }
+
+    // 실시결과 저장
+    async saveResultData() {
+        try {
+            const sessionSelect = document.getElementById('resultSessionSelect');
+            const mainContent = document.getElementById('resultMainContent').value.trim();
+            const futurePlan = document.getElementById('resultFuturePlan').value.trim();
+            const sketchTitle = document.getElementById('sketchTitle').value.trim();
+            const sketchFile = document.getElementById('sketchFile').files[0];
+            
+            // 유효성 검사
+            if (!sessionSelect.value) {
+                this.showErrorToast('세미나를 선택해주세요.');
+                return;
+            }
+            
+            if (!mainContent && !futurePlan && !sketchFile) {
+                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
+                return;
+            }
+            
+            this.showLoading(true);
+            
+            const [session, datetime] = sessionSelect.value.split('|');
+            let imageUrl = '';
+            
+            // 이미지 업로드 처리
+            if (sketchFile) {
+                const timestamp = Date.now();
+                const fileName = `sketches/${session}_${timestamp}_${sketchFile.name}`;
+                const uploadResult = await uploadImage(sketchFile, fileName);
+                
+                if (uploadResult.success) {
+                    imageUrl = uploadResult.url;
+                } else {
+                    this.showErrorToast(uploadResult.message);
+                    return;
+                }
+            }
+            
+            // 실시결과 데이터 구성
+            const resultData = {
+                session: session,
+                datetime: datetime,
+                mainContent: mainContent,
+                futurePlan: futurePlan,
+                sketchTitle: sketchTitle,
+                sketchImageUrl: imageUrl,
+                sketchFileName: sketchFile ? sketchFile.name : ''
+            };
+            
+            // 데이터 저장
+            const result = await saveResultData(resultData);
+            
+            if (result.success) {
+                this.showSuccessToast('실시결과가 성공적으로 저장되었습니다.');
+                this.closeResultModal();
+            } else {
+                this.showErrorToast(result.message);
+            }
+            
+        } catch (error) {
+            console.error('실시결과 저장 오류:', error);
+            this.showErrorToast('실시결과 저장 중 오류가 발생했습니다.');
         } finally {
             this.showLoading(false);
         }

@@ -16,11 +16,84 @@ firebase.initializeApp(firebaseConfig);
 // Firestore 데이터베이스 참조
 const db = firebase.firestore();
 
+// Firebase Storage 참조
+const storage = firebase.storage();
+
 // Firebase 설정 상태 확인
 console.log('Firebase initialized successfully');
 
 // Firebase를 기본 저장소로 사용
 const useLocalStorage = false; // Firebase 사용
+
+// Firebase Storage 함수들
+async function uploadImage(file, path) {
+    try {
+        const storageRef = storage.ref();
+        const fileRef = storageRef.child(path);
+        const snapshot = await fileRef.put(file);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        return { success: true, url: downloadURL };
+    } catch (error) {
+        console.error('이미지 업로드 오류:', error);
+        return { success: false, message: '이미지 업로드 중 오류가 발생했습니다: ' + error.message };
+    }
+}
+
+async function deleteImage(path) {
+    try {
+        const storageRef = storage.ref();
+        const fileRef = storageRef.child(path);
+        await fileRef.delete();
+        return { success: true };
+    } catch (error) {
+        console.error('이미지 삭제 오류:', error);
+        return { success: false, message: '이미지 삭제 중 오류가 발생했습니다: ' + error.message };
+    }
+}
+
+// 실시결과 저장 함수
+async function saveResultData(data) {
+    try {
+        if (useLocalStorage) {
+            // 로컬 스토리지 사용
+            localStorage.setItem('seminarResult', JSON.stringify(data));
+            return { success: true, message: '로컬 스토리지에 저장되었습니다.' };
+        } else {
+            // Firebase 사용
+            const docRef = await db.collection('seminarResults').add({
+                ...data,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return { success: true, message: 'Firebase에 저장되었습니다.', id: docRef.id };
+        }
+    } catch (error) {
+        console.error('실시결과 저장 오류:', error);
+        return { success: false, message: '저장 중 오류가 발생했습니다: ' + error.message };
+    }
+}
+
+// 실시결과 조회 함수
+async function loadResultData() {
+    try {
+        if (useLocalStorage) {
+            // 로컬 스토리지 사용
+            const data = localStorage.getItem('seminarResult');
+            return data ? JSON.parse(data) : null;
+        } else {
+            // Firebase 사용
+            const snapshot = await db.collection('seminarResults').orderBy('createdAt', 'desc').get();
+            const results = [];
+            snapshot.forEach(doc => {
+                results.push({ id: doc.id, ...doc.data() });
+            });
+            return results;
+        }
+    } catch (error) {
+        console.error('실시결과 조회 오류:', error);
+        return null;
+    }
+}
 
 // 데이터 저장 함수 (로컬 스토리지 또는 Firebase)
 async function saveData(data) {
