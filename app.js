@@ -131,6 +131,7 @@ class SeminarPlanningApp {
         
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
+        document.getElementById('exportResultPDF').addEventListener('click', () => this.exportResultToPDF());
         
         // 실시결과 모달 관련 이벤트들
         document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
@@ -3830,6 +3831,384 @@ class SeminarPlanningApp {
         } finally {
             this.showLoading(false);
         }
+    }
+
+    // PDF 실시결과 내보내기
+    async exportResultToPDF() {
+        try {
+            this.showLoading(true);
+            
+            // 현재 세미나 정보 가져오기
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
+            // 실시결과 데이터 조회
+            const results = await loadResultData();
+            let resultData = null;
+            if (results && results.length > 0) {
+                resultData = results.find(result => 
+                    result.session === session && result.datetime === datetime
+                );
+            }
+            
+            if (!resultData) {
+                this.showErrorToast('해당 세미나의 실시결과가 등록되지 않았습니다.');
+                this.showLoading(false);
+                return;
+            }
+            
+            // PDFMake 라이브러리 로딩 대기 및 확인
+            this.waitForPDFMake().then(() => {
+                console.log('✅ PDFMake 라이브러리 사용 (실시결과)');
+                this.exportResultToPDFWithPDFMake(resultData);
+            }).catch(() => {
+                console.log('🔄 PDFMake 로딩 실패, HTML to PDF 방식 사용 (실시결과)');
+                this.exportResultToPDFWithHTML(resultData);
+            }).finally(() => {
+                // 로딩 상태 해제는 각 함수에서 처리
+            });
+            
+        } catch (error) {
+            console.error('PDF 실시결과 내보내기 오류:', error);
+            this.showErrorToast('PDF 실시결과 내보내기 중 오류가 발생했습니다.');
+            this.showLoading(false);
+        }
+    }
+
+    // PDFMake를 사용한 실시결과 PDF 생성
+    exportResultToPDFWithPDFMake(resultData) {
+        try {
+            // PDFMake 라이브러리 로딩 확인
+            if (!window.pdfMake) {
+                console.warn('⚠️ PDFMake 라이브러리가 로드되지 않았습니다. HTML to PDF 방식으로 전환합니다.');
+                this.exportResultToPDFWithHTML(resultData);
+                return;
+            }
+            
+            console.log('✅ PDFMake 라이브러리 로드 완료 (실시결과)');
+            
+            // 현재 세미나 정보
+            const session = resultData.session;
+            const datetime = resultData.datetime;
+            const location = document.getElementById('location').value || '미입력';
+            const attendees = document.getElementById('attendees').value || '미입력';
+            
+            // PDF 문서 정의
+            const docDefinition = {
+                pageSize: 'A4',
+                pageMargins: [40, 60, 40, 60],
+                content: [
+                    // 제목
+                    {
+                        text: `${session} 전사 신기술 세미나 실시 결과`,
+                        fontSize: 18,
+                        bold: true,
+                        alignment: 'center',
+                        margin: [0, 0, 0, 30]
+                    },
+                    
+                    // 1. 개요
+                    {
+                        text: '1. 개요',
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        columns: [
+                            {
+                                text: '□ 일시/장소:',
+                                width: 'auto'
+                            },
+                            {
+                                text: `${datetime} / ${location}`,
+                                width: '*'
+                            }
+                        ],
+                        margin: [0, 0, 0, 5]
+                    },
+                    {
+                        columns: [
+                            {
+                                text: '□ 참석 인력:',
+                                width: 'auto'
+                            },
+                            {
+                                text: attendees,
+                                width: '*'
+                            }
+                        ],
+                        margin: [0, 0, 0, 20]
+                    },
+                    
+                    // 2. 주요 내용
+                    {
+                        text: '2. 주요 내용',
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        text: resultData.mainContent || '미입력',
+                        margin: [0, 0, 0, 20]
+                    },
+                    
+                    // 3. 향후 계획
+                    {
+                        text: '3. 향후 계획',
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        text: resultData.futurePlan || '미입력',
+                        margin: [0, 0, 0, 20]
+                    }
+                ],
+                styles: {
+                    header: {
+                        fontSize: 16,
+                        bold: true,
+                        margin: [0, 0, 0, 10]
+                    }
+                }
+            };
+            
+            // 참석자 명단 추가 (새 페이지)
+            if (this.attendees && this.attendees.length > 0) {
+                const attendeeTable = {
+                    table: {
+                        headerRows: 1,
+                        widths: ['auto', '*', '*', '*', '*'],
+                        body: [
+                            ['No', '성명', '직급', '소속', '업무'],
+                            ...this.attendees.map((attendee, index) => [
+                                (index + 1).toString(),
+                                attendee.name || '',
+                                attendee.position || '',
+                                attendee.department || '',
+                                attendee.work || ''
+                            ])
+                        ]
+                    },
+                    layout: 'lightHorizontalLines',
+                    margin: [0, 0, 0, 20]
+                };
+                
+                docDefinition.content.push(
+                    { text: '', pageBreak: 'before' },
+                    { text: '[별첨 1] 세미나 참석명단', style: 'header' },
+                    attendeeTable
+                );
+            }
+            
+            // 스케치 추가 (새 페이지)
+            if (resultData.sketches && resultData.sketches.length > 0) {
+                docDefinition.content.push(
+                    { text: '', pageBreak: 'before' },
+                    { text: '[별첨 2] 세미나 스케치', style: 'header' }
+                );
+                
+                resultData.sketches.forEach((sketch, index) => {
+                    if (sketch.title && sketch.imageData) {
+                        docDefinition.content.push(
+                            {
+                                text: `스케치 ${index + 1}: ${sketch.title}`,
+                                fontSize: 12,
+                                bold: true,
+                                margin: [0, 10, 0, 5]
+                            },
+                            {
+                                image: sketch.imageData,
+                                width: 400,
+                                margin: [0, 0, 0, 20]
+                            }
+                        );
+                    }
+                });
+            }
+            
+            // PDF 생성 및 다운로드
+            pdfMake.createPdf(docDefinition).download(`${session}_실시결과.pdf`);
+            this.showSuccessToast('PDF 실시결과가 성공적으로 생성되었습니다.');
+            this.showLoading(false);
+            
+        } catch (error) {
+            console.error('PDFMake 실시결과 PDF 생성 오류:', error);
+            this.showLoading(false);
+            this.exportResultToPDFWithHTML(resultData);
+        }
+    }
+
+    // HTML to PDF 방식으로 실시결과 내보내기
+    exportResultToPDFWithHTML(resultData) {
+        try {
+            console.log('🔄 HTML to PDF 방식으로 실시결과 PDF 생성');
+            
+            // HTML 콘텐츠 생성
+            const htmlContent = this.generateResultPDFHTML(resultData);
+            
+            // 새 창에서 HTML 열기
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(htmlContent);
+            newWindow.document.close();
+            
+            // 인쇄 대화상자 열기
+            setTimeout(() => {
+                newWindow.print();
+                this.showSuccessToast('PDF 인쇄 대화상자가 열렸습니다. "PDF로 저장"을 선택하세요.');
+            }, 500);
+            
+        } catch (error) {
+            console.error('HTML to PDF 실시결과 내보내기 오류:', error);
+            this.showErrorToast('PDF 실시결과 내보내기 중 오류가 발생했습니다.');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    // 실시결과 PDF용 HTML 콘텐츠 생성
+    generateResultPDFHTML(resultData) {
+        const session = resultData.session;
+        const datetime = resultData.datetime;
+        const location = document.getElementById('location').value || '미입력';
+        const attendees = document.getElementById('attendees').value || '미입력';
+        
+        // 안전한 텍스트 처리 함수
+        const safeText = (text) => {
+            if (!text) return '미입력';
+            return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        
+        // 참석자 명단 HTML 생성
+        let attendeeTableHTML = '';
+        if (this.attendees && this.attendees.length > 0) {
+            attendeeTableHTML = `
+                <div style="page-break-before: always;">
+                    <h2>[별첨 1] 세미나 참석명단</h2>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background-color: #f5f5f5;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">No</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">성명</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">직급</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">소속</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">업무</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.attendees.map((attendee, index) => `
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.name)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.position)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.department)}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${safeText(attendee.work)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        // 스케치 HTML 생성
+        let sketchHTML = '';
+        if (resultData.sketches && resultData.sketches.length > 0) {
+            sketchHTML = `
+                <div style="page-break-before: always;">
+                    <h2>[별첨 2] 세미나 스케치</h2>
+                    ${resultData.sketches.map((sketch, index) => {
+                        if (sketch.title && sketch.imageData) {
+                            return `
+                                <div style="margin: 20px 0;">
+                                    <h3>스케치 ${index + 1}: ${safeText(sketch.title)}</h3>
+                                    <img src="${sketch.imageData}" style="max-width: 100%; height: auto; border: 1px solid #ddd;" />
+                                </div>
+                            `;
+                        }
+                        return '';
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        return `
+            <!DOCTYPE html>
+            <html lang="ko">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${session} 전사 신기술 세미나 실시 결과</title>
+                <style>
+                    body {
+                        font-family: 'Malgun Gothic', Arial, sans-serif;
+                        line-height: 1.6;
+                        margin: 0;
+                        padding: 20px;
+                        color: #333;
+                    }
+                    h1 {
+                        text-align: center;
+                        font-size: 18px;
+                        font-weight: bold;
+                        margin-bottom: 30px;
+                    }
+                    h2 {
+                        font-size: 14px;
+                        font-weight: bold;
+                        margin: 20px 0 10px 0;
+                    }
+                    h3 {
+                        font-size: 12px;
+                        font-weight: bold;
+                        margin: 15px 0 5px 0;
+                    }
+                    .overview {
+                        margin-bottom: 20px;
+                    }
+                    .overview-item {
+                        margin-bottom: 5px;
+                    }
+                    .content {
+                        margin-bottom: 20px;
+                    }
+                    @media print {
+                        body { margin: 0; }
+                        .page-break { page-break-before: always; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>${session} 전사 신기술 세미나 실시 결과</h1>
+                
+                <div class="overview">
+                    <h2>1. 개요</h2>
+                    <div class="overview-item">□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</div>
+                    <div class="overview-item">□ 참석 인력: ${safeText(attendees)}</div>
+                </div>
+                
+                <div class="content">
+                    <h2>2. 주요 내용</h2>
+                    <div>${safeText(resultData.mainContent)}</div>
+                </div>
+                
+                <div class="content">
+                    <h2>3. 향후 계획</h2>
+                    <div>${safeText(resultData.futurePlan)}</div>
+                </div>
+                
+                ${attendeeTableHTML}
+                ${sketchHTML}
+            </body>
+            </html>
+        `;
     }
 }
 
