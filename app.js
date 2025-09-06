@@ -288,6 +288,10 @@ class SeminarPlanningApp {
                 console.log('attendeeList 원본 데이터:', this.currentData.attendeeList);
                 console.log('timeSchedule 타입:', typeof this.currentData.timeSchedule);
                 console.log('attendeeList 타입:', typeof this.currentData.attendeeList);
+                console.log('objective 값:', this.currentData.objective);
+                console.log('datetime 값:', this.currentData.datetime);
+                console.log('location 값:', this.currentData.location);
+                console.log('attendees 값:', this.currentData.attendees);
                 
                 console.log('populateForm 호출 시작...');
                 await this.populateForm();
@@ -342,13 +346,17 @@ class SeminarPlanningApp {
             const value = this.currentData[mapping.key];
             const element = document.getElementById(mapping.id);
             
-            console.log(`필드 매핑: ${mapping.key} -> ${mapping.id}, 값: ${value}, 요소:`, element);
+            console.log(`필드 매핑: ${mapping.key} -> ${mapping.id}, 값: "${value}", 요소:`, element);
             
-            if (element && value !== undefined && value !== null) {
-                element.value = value;
-                console.log(`값 설정 완료: ${mapping.key} = ${value}`);
+            if (element) {
+                if (value !== undefined && value !== null && value !== '') {
+                    element.value = value;
+                    console.log(`값 설정 완료: ${mapping.key} = "${value}"`);
+                } else {
+                    console.log(`값이 비어있어서 설정하지 않음: ${mapping.key} = "${value}"`);
+                }
             } else {
-                console.log(`요소를 찾을 수 없거나 값이 없음: ${mapping.key}`, element, value);
+                console.log(`요소를 찾을 수 없음: ${mapping.key}`, element);
             }
         });
 
@@ -994,6 +1002,8 @@ class SeminarPlanningApp {
                 console.log('timeSchedule을 객체에서 배열로 변환');
                 this.currentData.timeSchedule = Object.values(this.currentData.timeSchedule);
                 console.log('변환된 timeSchedule:', this.currentData.timeSchedule);
+            } else if (Array.isArray(this.currentData.timeSchedule)) {
+                console.log('timeSchedule은 이미 배열입니다:', this.currentData.timeSchedule.length, '개 항목');
             }
         } else {
             console.log('timeSchedule이 없습니다. 빈 배열로 초기화');
@@ -1006,6 +1016,8 @@ class SeminarPlanningApp {
                 console.log('attendeeList를 객체에서 배열로 변환');
                 this.currentData.attendeeList = Object.values(this.currentData.attendeeList);
                 console.log('변환된 attendeeList:', this.currentData.attendeeList);
+            } else if (Array.isArray(this.currentData.attendeeList)) {
+                console.log('attendeeList는 이미 배열입니다:', this.currentData.attendeeList.length, '개 항목');
             }
         } else {
             console.log('attendeeList가 없습니다. 빈 배열로 초기화');
@@ -1013,6 +1025,8 @@ class SeminarPlanningApp {
         }
         
         console.log('데이터 구조 정규화 완료');
+        console.log('정규화 후 timeSchedule:', this.currentData.timeSchedule);
+        console.log('정규화 후 attendeeList:', this.currentData.attendeeList);
     }
 
     // 참석자 데이터 마이그레이션 (기존 데이터 호환성)
