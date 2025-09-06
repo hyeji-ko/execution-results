@@ -3983,6 +3983,7 @@ class SeminarPlanningApp {
             // 특정 회차_일시의 실시결과 데이터 조회
             const resultData = await loadResultDataByKey(session, datetime);
             console.log('📊 조회된 실시결과 데이터:', resultData);
+            console.log('📊 resultData.objective:', resultData ? resultData.objective : 'null');
             
             if (resultData) {
                 console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드:', resultData);
@@ -4009,8 +4010,14 @@ class SeminarPlanningApp {
             const futurePlanEl = document.getElementById('mainResultFuturePlan');
             
             if (objectiveEl) {
-                objectiveEl.value = resultData.objective || '';
-                console.log('✅ 목표 설정:', resultData.objective);
+                const objectiveValue = resultData.objective || '';
+                objectiveEl.value = objectiveValue;
+                this.currentData.objective = objectiveValue;
+                console.log('✅ 목표 설정:', objectiveValue);
+                console.log('✅ objectiveEl.value:', objectiveEl.value);
+                console.log('✅ this.currentData.objective:', this.currentData.objective);
+            } else {
+                console.log('❌ objectiveEl을 찾을 수 없습니다.');
             }
             
             if (mainContentEl) {
@@ -4094,6 +4101,7 @@ class SeminarPlanningApp {
     // 메인화면 실시결과 폼 초기화
     clearMainResultForm() {
         document.getElementById('objective').value = '';
+        this.currentData.objective = '';
         document.getElementById('mainResultContent').value = '';
         document.getElementById('mainResultFuturePlan').value = '';
         this.clearMainSketchFields();
