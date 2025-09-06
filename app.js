@@ -1402,89 +1402,6 @@ class SeminarPlanningApp {
         }
     }
 
-        // 회차 리스트박스 생성
-    createSessionSelect(currentSession, itemId) {
-        const sessionOptions = [
-            { value: '', text: '선택하세요' },
-            { value: '제 1회', text: '제 1회' },
-            { value: '제 2회', text: '제 2회' },
-            { value: '제 3회', text: '제 3회' },
-            { value: '제 4회', text: '제 4회' },
-            { value: '제 5회', text: '제 5회' },
-            { value: '제 6회', text: '제 6회' },
-            { value: '제 7회', text: '제 7회' },
-            { value: '제 8회', text: '제 8회' },
-            { value: '제 9회', text: '제 9회' },
-            { value: '제10회', text: '제10회' },
-            { value: '제11회', text: '제11회' },
-            { value: '제12회', text: '제12회' },
-            { value: '제13회', text: '제13회' },
-            { value: '제14회', text: '제14회' },
-            { value: '제15회', text: '제15회' },
-            { value: '제16회', text: '제16회' },
-            { value: '제17회', text: '제17회' },
-            { value: '제18회', text: '제18회' },
-            { value: '제19회', text: '제19회' },
-            { value: '제20회', text: '제20회' },
-            { value: '직접입력', text: '직접입력' }
-        ];
-
-        let optionsHtml = '';
-        sessionOptions.forEach(option => {
-            const selected = option.value === currentSession ? 'selected' : '';
-            optionsHtml += `<option value="${option.value}" ${selected}>${option.text}</option>`;
-        });
-
-        return `
-            <select class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white" 
-                    onchange="app.updateSessionInSearch(this.value, '${itemId}')"
-                    onclick="event.stopPropagation()">
-                ${optionsHtml}
-            </select>
-        `;
-    }
-
-    // 검색 결과에서 회차 업데이트
-    async updateSessionInSearch(newSession, itemId) {
-        try {
-            if (!newSession) {
-                this.showErrorToast('회차를 선택해주세요.');
-                return;
-            }
-
-            this.showLoading(true);
-            console.log('🔄 회차 업데이트 시작:', { newSession, itemId });
-
-            // Firebase에서 해당 문서 조회
-            const result = await this.getSeminarById(itemId);
-            
-            if (result.success) {
-                // 회차 업데이트
-                const updatedData = {
-                    ...result.data,
-                    session: newSession
-                };
-
-                // 데이터 업데이트
-                const updateResult = await updateData(itemId, updatedData);
-                
-                if (updateResult.success) {
-                    this.showSuccessToast('회차가 성공적으로 업데이트되었습니다.');
-                    // 조회 결과 새로고침
-                    await this.showSearchModal();
-                } else {
-                    this.showErrorToast(updateResult.message);
-                }
-            } else {
-                this.showErrorToast('데이터를 찾을 수 없습니다.');
-            }
-        } catch (error) {
-            console.error('회차 업데이트 오류:', error);
-            this.showErrorToast('회차 업데이트 중 오류가 발생했습니다.');
-        } finally {
-            this.showLoading(false);
-        }
-    }
 
     // 검색 결과 표시
     displaySearchResults(data) {
@@ -1522,12 +1439,14 @@ class SeminarPlanningApp {
             const location = this.ensureStringValue(item.location) || '미입력';
             const attendees = this.ensureStringValue(item.attendees) || '미입력';
             
-            // 회차 리스트박스 생성
-            const sessionSelect = this.createSessionSelect(session, item.id);
+            // 회차는 읽기 전용으로 표시
+            const sessionBadge = session === '미입력' ? 
+                '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">미입력</span>' :
+                `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">${this.escapeHtml(session)}</span>`;
             
             row.innerHTML = `
                 <td class="px-6 py-4 w-40">
-                    ${sessionSelect}
+                    ${sessionBadge}
                 </td>
                 <td class="px-4 py-4 w-48">
                     <div class="flex items-center space-x-2 group-hover:text-blue-600 transition-colors duration-200">
