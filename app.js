@@ -250,14 +250,11 @@ class SeminarPlanningApp {
     }
 
     async populateForm() {
-        // 기본 정보 채우기 (목표 제외)
+        // 기본 정보 채우기 (목표 포함)
         Object.keys(this.currentData).forEach(key => {
             if (key === 'session') {
                 // 회차 필드 특별 처리
                 this.populateSessionField();
-            } else if (key === 'objective') {
-                // 목표는 실시결과 데이터에서 처리하므로 여기서는 제외
-                return;
             } else {
                 const element = document.getElementById(key);
                 if (element && typeof this.currentData[key] === 'string') {
@@ -1403,7 +1400,7 @@ class SeminarPlanningApp {
     }
 
 
-    // 검색 결과 표시
+        // 검색 결과 표시
     displaySearchResults(data) {
         const tbody = document.getElementById('searchResultBody');
         tbody.innerHTML = '';
@@ -4010,7 +4007,8 @@ class SeminarPlanningApp {
             const futurePlanEl = document.getElementById('mainResultFuturePlan');
             
             if (objectiveEl) {
-                const objectiveValue = resultData.objective || '';
+                // resultData.objective가 있으면 사용, 없으면 현재 폼 값 유지
+                const objectiveValue = resultData.objective || objectiveEl.value || '';
                 objectiveEl.value = objectiveValue;
                 this.currentData.objective = objectiveValue;
                 console.log('✅ 목표 설정:', objectiveValue);
