@@ -635,6 +635,11 @@ class SeminarPlanningApp {
             console.log(`참석자 데이터 업데이트: index=${index}, field=${field}, value=${value}`);
             console.log(`업데이트 후 참석자 데이터:`, this.currentData.attendeeList[index]);
             
+            // 참석여부 변경 시 즉시 저장 (백그라운드)
+            if (field === 'attendance') {
+                this.saveDataQuietly();
+            }
+            
             // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
             if (field === 'department') {
                 // 현재 활성화된 요소 찾기
@@ -1178,6 +1183,71 @@ class SeminarPlanningApp {
             this.showErrorToast('저장 중 오류가 발생했습니다.');
         } finally {
             this.showLoading(false);
+        }
+    }
+
+    // 조용한 저장 (로딩 표시 없음)
+    async saveDataQuietly() {
+        try {
+            // 필요한 함수들이 정의되어 있는지 확인
+            if (typeof window.saveData !== 'function' || typeof window.updateData !== 'function') {
+                console.warn('필요한 함수들이 정의되지 않았습니다.');
+                return;
+            }
+            
+            // 현재 폼 데이터 수집
+            this.collectFormData();
+            
+            // 회차와 일시가 모두 입력되었는지 확인
+            if (!this.currentData.session || !this.currentData.datetime) {
+                console.warn('회차와 일시를 모두 입력해주세요.');
+                return;
+            }
+            
+            // 회차 + 일시를 키값으로 사용
+            const keyValue = `${this.currentData.session}_${this.currentData.datetime}`;
+            
+            // 기존 데이터에서 동일한 키값을 가진 데이터 찾기
+            const existingData = await this.findExistingDataByKey(keyValue);
+            
+            let result;
+            
+            if (existingData) {
+                // 기존 데이터가 있으면 수정
+                console.log('참석여부 변경 - 기존 데이터 수정:', existingData.id);
+                
+                if (useLocalStorage) {
+                    result = this.saveToLocalStorage(this.currentData, existingData.id);
+                } else {
+                    result = await window.updateData(existingData.id, this.currentData);
+                }
+                
+                if (result.success) {
+                    this.currentDocumentId = existingData.id;
+                    console.log('참석여부 변경 저장 완료');
+                }
+            } else {
+                // 기존 데이터가 없으면 새로 등록
+                console.log('참석여부 변경 - 새 데이터 등록');
+                
+                if (useLocalStorage) {
+                    result = this.saveToLocalStorage(this.currentData);
+                } else {
+                    result = await window.saveData(this.currentData);
+                }
+                
+                if (result.success && result.id) {
+                    this.currentDocumentId = result.id;
+                    console.log('참석여부 변경 저장 완료');
+                }
+            }
+            
+            if (!result.success) {
+                console.error('참석여부 변경 저장 실패:', result.message);
+            }
+            
+        } catch (error) {
+            console.error('참석여부 변경 저장 오류:', error);
         }
     }
     
