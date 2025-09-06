@@ -3906,7 +3906,11 @@ class SeminarPlanningApp {
             }
             
             // PDF 생성 및 다운로드
-            pdfMake.createPdf(docDefinition).download(`${session}_실시결과.pdf`);
+            const currentDate = new Date();
+            const dateString = currentDate.getFullYear().toString() + 
+                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + 
+                              currentDate.getDate().toString().padStart(2, '0');
+            pdfMake.createPdf(docDefinition).download(`${dateString} 전사 신기술 세미나 시행결과.pdf`);
             this.showSuccessToast('PDF 실시결과가 성공적으로 생성되었습니다.');
             this.showLoading(false);
             
@@ -3937,6 +3941,13 @@ class SeminarPlanningApp {
             
             newWindow.document.write(htmlContent);
             newWindow.document.close();
+            
+            // 새 창 제목 설정 (PDF 저장 시 파일명으로 사용됨)
+            const currentDate = new Date();
+            const dateString = currentDate.getFullYear().toString() + 
+                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + 
+                              currentDate.getDate().toString().padStart(2, '0');
+            newWindow.document.title = `${dateString} 전사 신기술 세미나 시행결과.pdf`;
             
             // 인쇄 대화상자 열기
             setTimeout(() => {
@@ -3970,7 +3981,7 @@ class SeminarPlanningApp {
                     if (index === 0) {
                         return `  □ ${trimmedSub}`;
                     } else {
-                        return `    - ${trimmedSub}`;
+                        return `      - ${trimmedSub}`;
                     }
                 }).join('\n');
             } else {
@@ -4474,10 +4485,10 @@ class SeminarPlanningApp {
             <head>
                 <meta charset="UTF-8">
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                <title>전사 신기술 세미나 실행계획</title>
+                <title>전사 신기술 세미나 실시결과</title>
                 <meta name="author" content="(주)경포씨엔씨">
-                <meta name="description" content="전사 신기술 세미나 실행계획서">
-                <meta name="keywords" content="세미나, 실행계획, KPCNC">
+                <meta name="description" content="전사 신기술 세미나 실시결과">
+                <meta name="keywords" content="세미나, 실시결과, KPCNC">
                 <meta name="robots" content="noindex, nofollow">
                 <meta name="generator" content="">
                 <style>
