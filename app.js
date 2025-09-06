@@ -3968,13 +3968,13 @@ class SeminarPlanningApp {
                 return subSections.map((sub, index) => {
                     const trimmedSub = sub.trim();
                     if (index === 0) {
-                        return `&nbsp;&nbsp;□ ${trimmedSub}`;
+                        return `  □ ${trimmedSub}`;
                     } else {
-                        return `&nbsp;&nbsp;&nbsp;&nbsp;- ${trimmedSub}`;
+                        return `    - ${trimmedSub}`;
                     }
                 }).join('\n');
             } else {
-                return `&nbsp;&nbsp;□ ${trimmedSection}`;
+                return `  □ ${trimmedSection}`;
             }
         });
         
@@ -4473,55 +4473,144 @@ class SeminarPlanningApp {
             <html lang="ko">
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title> </title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <title>전사 신기술 세미나 실행계획</title>
+                <meta name="author" content="(주)경포씨엔씨">
+                <meta name="description" content="전사 신기술 세미나 실행계획서">
+                <meta name="keywords" content="세미나, 실행계획, KPCNC">
+                <meta name="robots" content="noindex, nofollow">
+                <meta name="generator" content="">
                 <style>
+                    @page {
+                        size: A4;
+                        margin: 2cm;
+                        @top-center {
+                            content: " ";
+                        }
+                        @bottom-center {
+                            content: "- " counter(page) " -";
+                            font-size: 10px;
+                            margin-top: 10px;
+                        }
+                    }
+                    * {
+                        font-family: '맑은 고딕', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', sans-serif !important;
+                    }
                     body {
-                        font-family: 'Malgun Gothic', Arial, sans-serif;
                         line-height: 1.6;
-                        margin: 0;
-                        padding: 20px;
                         color: #333;
-                    }
-                    h1 {
-                        text-align: center;
-                        font-size: 18px;
-                        font-weight: bold;
-                        margin-bottom: 30px;
-                    }
-                    h2 {
-                        font-size: 14px;
-                        font-weight: bold;
-                        margin: 20px 0 10px 0;
-                    }
-                    h3 {
+                        margin: 0;
+                        padding: 0;
                         font-size: 12px;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        border-bottom: 2px solid #333;
+                        padding-bottom: 20px;
+                    }
+                    .header h1 {
+                        font-size: 24px;
                         font-weight: bold;
-                        margin: 15px 0 5px 0;
+                        margin: 0;
+                        color: #2c3e50;
                     }
-                    .overview {
-                        margin-bottom: 20px;
+                    .section {
+                        margin-bottom: 25px;
                     }
-                    .overview-item {
-                        margin-bottom: 5px;
+                    .section h2 {
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #34495e;
+                        padding-bottom: 5px;
+                        margin-bottom: 15px;
                     }
-                    .content {
-                        margin-bottom: 20px;
+                    .info-item {
+                        margin: 8px 0;
+                        font-size: 12px;
+                        display: flex;
+                        align-items: flex-start;
+                    }
+                    .info-label {
+                        font-weight: bold;
+                        display: inline-block;
+                        width: 80px;
+                        flex-shrink: 0;
+                    }
+                    .info-content {
+                        margin: 5px 0 15px 0;
+                        word-wrap: break-word;
+                        overflow-wrap: break-word;
+                        font-size: 12px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                        font-size: 11px;
+                    }
+                    th, td {
+                        border: 1px solid #bdc3c7;
+                        padding: 6px;
+                        text-align: left;
+                        vertical-align: top;
+                    }
+                    th {
+                        background-color: #ecf0f1;
+                        font-weight: bold;
+                    }
+                    .center-align {
+                        text-align: center;
+                    }
+                    .time-schedule-table {
+                        width: 100%;
+                    }
+                    .time-schedule-table th:nth-child(1),
+                    .time-schedule-table td:nth-child(1) {
+                        width: auto;
+                        min-width: 60px;
+                        max-width: 80px;
+                    }
+                    .time-schedule-table th:nth-child(2),
+                    .time-schedule-table td:nth-child(2) {
+                        width: 100%;
+                    }
+                    .time-schedule-table th:nth-child(3),
+                    .time-schedule-table td:nth-child(3) {
+                        width: auto;
+                        min-width: 60px;
+                        max-width: 80px;
+                    }
+                    .time-schedule-table th:nth-child(4),
+                    .time-schedule-table td:nth-child(4) {
+                        width: auto;
+                        min-width: 60px;
+                        max-width: 80px;
+                    }
+                    .attendee-table {
+                        width: 100%;
+                    }
+                    .attendee-table th,
+                    .attendee-table td {
+                        width: 20%;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 40px;
+                        font-size: 10px;
+                        color: #7f8c8d;
+                        border-top: 1px solid #bdc3c7;
+                        padding-top: 10px;
                     }
                     @media print {
-                        body { margin: 0; }
-                        .page-break { page-break-before: always; }
-                        @page {
-                            @bottom-center {
-                                content: "- " counter(page) " -";
-                                font-size: 10px;
-                            }
+                        body { 
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
                         }
                     }
                 </style>
             </head>
             <body>
-                <h1>${session} 전사 신기술 세미나 실시 결과</h1>
                 <div class="header">
                     <h1>${safeText(this.currentData.session)} 전사 신기술 세미나 실시 결과</h1>
                     <div style="text-align: right; margin-top: 10px; font-size: 12px;">${this.getCurrentDateString()}</div>
