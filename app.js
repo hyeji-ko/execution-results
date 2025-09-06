@@ -136,7 +136,6 @@ class SeminarPlanningApp {
         document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
         document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModal());
         document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
-        document.getElementById('resultSessionSelect').addEventListener('change', () => this.updateResultSession());
         document.getElementById('sketchFile').addEventListener('change', (e) => this.handleFileUpload(e));
         document.getElementById('removeFile').addEventListener('click', () => this.removeFile());
         document.getElementById('fileUploadArea').addEventListener('click', () => document.getElementById('sketchFile').click());
@@ -3530,13 +3529,23 @@ class SeminarPlanningApp {
     // 실시결과 모달 표시
     async showResultModal() {
         try {
-            // 기존 세미나 목록을 불러와서 선택 옵션에 추가
-            await this.loadSeminarsForResult();
+            // 현재 메인화면의 회차와 일시를 가져와서 설정
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
+                return;
+            }
+            
+            // 모달에 현재 세미나 정보 설정
+            document.getElementById('resultSession').value = session;
+            document.getElementById('resultDatetime').value = datetime;
             
             // 모달 표시
             document.getElementById('resultModal').classList.remove('hidden');
             
-            // 폼 초기화
+            // 폼 초기화 (세미나 정보 제외)
             this.resetResultForm();
         } catch (error) {
             console.error('실시결과 모달 표시 오류:', error);
@@ -3552,8 +3561,7 @@ class SeminarPlanningApp {
 
     // 실시결과 폼 초기화
     resetResultForm() {
-        document.getElementById('resultSessionSelect').value = '';
-        document.getElementById('resultDatetime').value = '';
+        // 세미나 정보는 유지하고 나머지만 초기화
         document.getElementById('resultMainContent').value = '';
         document.getElementById('resultFuturePlan').value = '';
         document.getElementById('sketchTitle').value = '';
@@ -3562,40 +3570,6 @@ class SeminarPlanningApp {
         document.getElementById('fileUploadArea').classList.remove('hidden');
     }
 
-    // 실시결과용 세미나 목록 로드
-    async loadSeminarsForResult() {
-        try {
-            const seminars = await loadData();
-            const select = document.getElementById('resultSessionSelect');
-            
-            // 기존 옵션 제거 (첫 번째 옵션 제외)
-            select.innerHTML = '<option value="">세미나를 선택하세요</option>';
-            
-            if (seminars && seminars.length > 0) {
-                seminars.forEach(seminar => {
-                    const option = document.createElement('option');
-                    option.value = seminar.session + '|' + seminar.datetime;
-                    option.textContent = `${seminar.session} - ${seminar.datetime}`;
-                    select.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('세미나 목록 로드 오류:', error);
-        }
-    }
-
-    // 실시결과 세미나 선택 업데이트
-    updateResultSession() {
-        const select = document.getElementById('resultSessionSelect');
-        const datetimeInput = document.getElementById('resultDatetime');
-        
-        if (select.value) {
-            const [session, datetime] = select.value.split('|');
-            datetimeInput.value = datetime;
-        } else {
-            datetimeInput.value = '';
-        }
-    }
 
     // 파일 업로드 처리
     handleFileUpload(event) {
@@ -3635,15 +3609,16 @@ class SeminarPlanningApp {
     // 실시결과 저장
     async saveResultData() {
         try {
-            const sessionSelect = document.getElementById('resultSessionSelect');
+            const session = document.getElementById('resultSession').value;
+            const datetime = document.getElementById('resultDatetime').value;
             const mainContent = document.getElementById('resultMainContent').value.trim();
             const futurePlan = document.getElementById('resultFuturePlan').value.trim();
             const sketchTitle = document.getElementById('sketchTitle').value.trim();
             const sketchFile = document.getElementById('sketchFile').files[0];
             
             // 유효성 검사
-            if (!sessionSelect.value) {
-                this.showErrorToast('세미나를 선택해주세요.');
+            if (!session || !datetime) {
+                this.showErrorToast('세미나 정보가 없습니다.');
                 return;
             }
             
@@ -3654,7 +3629,6 @@ class SeminarPlanningApp {
             
             this.showLoading(true);
             
-            const [session, datetime] = sessionSelect.value.split('|');
             let imageUrl = '';
             
             // 이미지 업로드 처리
