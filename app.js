@@ -155,6 +155,9 @@ class SeminarPlanningApp {
         document.getElementById('mainSketchFile2').addEventListener('change', (e) => this.handleMainFileUpload(e, 2));
         document.getElementById('mainRemoveFile2').addEventListener('click', () => this.removeMainFile(2));
         document.getElementById('mainFileUploadArea2').addEventListener('click', () => document.getElementById('mainSketchFile2').click());
+        
+        // 메인화면 실시결과 저장 버튼
+        document.getElementById('saveMainResultBtn').addEventListener('click', () => this.saveMainResultData());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -4276,73 +4279,131 @@ class SeminarPlanningApp {
             const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
             const datetime = document.getElementById('datetime').value;
             
+            console.log('🔍 메인화면 실시결과 데이터 로드 시도:', { session, datetime });
+            
             if (!session || !datetime) {
                 console.log('⚠️ 세미나 정보가 없어서 실시결과 데이터를 로드할 수 없습니다.');
+                this.clearMainResultForm();
                 return;
             }
             
-            console.log('🔍 메인화면 실시결과 데이터 로드:', { session, datetime });
-            
             // 실시결과 데이터 조회
             const results = await loadResultData();
+            console.log('📊 전체 실시결과 데이터:', results);
+            
             let resultData = null;
             if (results && results.length > 0) {
-                resultData = results.find(result => 
-                    result.session === session && result.datetime === datetime
-                );
+                resultData = results.find(result => {
+                    console.log('🔍 비교 중:', { 
+                        resultSession: result.session, 
+                        currentSession: session,
+                        resultDatetime: result.datetime, 
+                        currentDatetime: datetime,
+                        sessionMatch: result.session === session,
+                        datetimeMatch: result.datetime === datetime
+                    });
+                    return result.session === session && result.datetime === datetime;
+                });
             }
             
             if (resultData) {
-                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드');
+                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드:', resultData);
                 this.populateMainResultForm(resultData);
             } else {
-                console.log('ℹ️ 기존 실시결과 데이터가 없음');
+                console.log('ℹ️ 기존 실시결과 데이터가 없음, 폼 초기화');
                 this.clearMainResultForm();
             }
             
         } catch (error) {
             console.error('메인화면 실시결과 데이터 로드 오류:', error);
+            this.clearMainResultForm();
         }
     }
 
     // 메인화면 실시결과 폼에 데이터 채우기
     populateMainResultForm(resultData) {
-        // 주요 내용과 향후 계획 채우기
-        document.getElementById('mainResultContent').value = resultData.mainContent || '';
-        document.getElementById('mainResultFuturePlan').value = resultData.futurePlan || '';
+        console.log('📝 메인화면 폼에 데이터 채우기:', resultData);
         
-        // 스케치 데이터 처리
-        if (resultData.sketches && resultData.sketches.length > 0) {
-            // 스케치 1
-            if (resultData.sketches[0]) {
-                const sketch1 = resultData.sketches[0];
-                document.getElementById('mainSketchTitle1').value = sketch1.title || '';
-                
-                if (sketch1.imageData) {
-                    // Base64 이미지 표시
-                    document.getElementById('mainPreviewImage1').src = sketch1.imageData;
-                    document.getElementById('mainFileName1').textContent = sketch1.fileName || '업로드된 이미지';
-                    document.getElementById('mainFilePreview1').classList.remove('hidden');
-                    document.getElementById('mainFileUploadArea1').classList.add('hidden');
-                }
+        try {
+            // 주요 내용과 향후 계획 채우기
+            const mainContentEl = document.getElementById('mainResultContent');
+            const futurePlanEl = document.getElementById('mainResultFuturePlan');
+            
+            if (mainContentEl) {
+                mainContentEl.value = resultData.mainContent || '';
+                console.log('✅ 주요 내용 설정:', resultData.mainContent);
             }
             
-            // 스케치 2
-            if (resultData.sketches[1]) {
-                const sketch2 = resultData.sketches[1];
-                document.getElementById('mainSketchTitle2').value = sketch2.title || '';
-                
-                if (sketch2.imageData) {
-                    // Base64 이미지 표시
-                    document.getElementById('mainPreviewImage2').src = sketch2.imageData;
-                    document.getElementById('mainFileName2').textContent = sketch2.fileName || '업로드된 이미지';
-                    document.getElementById('mainFilePreview2').classList.remove('hidden');
-                    document.getElementById('mainFileUploadArea2').classList.add('hidden');
-                }
+            if (futurePlanEl) {
+                futurePlanEl.value = resultData.futurePlan || '';
+                console.log('✅ 향후 계획 설정:', resultData.futurePlan);
             }
-        } else {
-            // 스케치가 없으면 초기화
-            this.clearMainSketchFields();
+            
+            // 스케치 데이터 처리
+            if (resultData.sketches && resultData.sketches.length > 0) {
+                console.log('🖼️ 스케치 데이터 처리:', resultData.sketches);
+                
+                // 스케치 1
+                if (resultData.sketches[0]) {
+                    const sketch1 = resultData.sketches[0];
+                    const title1El = document.getElementById('mainSketchTitle1');
+                    
+                    if (title1El) {
+                        title1El.value = sketch1.title || '';
+                        console.log('✅ 스케치 1 제목 설정:', sketch1.title);
+                    }
+                    
+                    if (sketch1.imageData) {
+                        // Base64 이미지 표시
+                        const previewImg1 = document.getElementById('mainPreviewImage1');
+                        const fileName1 = document.getElementById('mainFileName1');
+                        const preview1 = document.getElementById('mainFilePreview1');
+                        const uploadArea1 = document.getElementById('mainFileUploadArea1');
+                        
+                        if (previewImg1) previewImg1.src = sketch1.imageData;
+                        if (fileName1) fileName1.textContent = sketch1.fileName || '업로드된 이미지';
+                        if (preview1) preview1.classList.remove('hidden');
+                        if (uploadArea1) uploadArea1.classList.add('hidden');
+                        
+                        console.log('✅ 스케치 1 이미지 표시');
+                    }
+                }
+                
+                // 스케치 2
+                if (resultData.sketches[1]) {
+                    const sketch2 = resultData.sketches[1];
+                    const title2El = document.getElementById('mainSketchTitle2');
+                    
+                    if (title2El) {
+                        title2El.value = sketch2.title || '';
+                        console.log('✅ 스케치 2 제목 설정:', sketch2.title);
+                    }
+                    
+                    if (sketch2.imageData) {
+                        // Base64 이미지 표시
+                        const previewImg2 = document.getElementById('mainPreviewImage2');
+                        const fileName2 = document.getElementById('mainFileName2');
+                        const preview2 = document.getElementById('mainFilePreview2');
+                        const uploadArea2 = document.getElementById('mainFileUploadArea2');
+                        
+                        if (previewImg2) previewImg2.src = sketch2.imageData;
+                        if (fileName2) fileName2.textContent = sketch2.fileName || '업로드된 이미지';
+                        if (preview2) preview2.classList.remove('hidden');
+                        if (uploadArea2) uploadArea2.classList.add('hidden');
+                        
+                        console.log('✅ 스케치 2 이미지 표시');
+                    }
+                }
+            } else {
+                // 스케치가 없으면 초기화
+                console.log('ℹ️ 스케치 데이터가 없어서 초기화');
+                this.clearMainSketchFields();
+            }
+            
+            console.log('✅ 메인화면 폼 데이터 채우기 완료');
+            
+        } catch (error) {
+            console.error('메인화면 폼 데이터 채우기 오류:', error);
         }
     }
 
@@ -4366,6 +4427,128 @@ class SeminarPlanningApp {
         document.getElementById('mainSketchFile2').value = '';
         document.getElementById('mainFilePreview2').classList.add('hidden');
         document.getElementById('mainFileUploadArea2').classList.remove('hidden');
+    }
+
+    // 메인화면 실시결과 저장
+    async saveMainResultData() {
+        try {
+            this.showLoading(true);
+            
+            // 현재 세미나 정보 가져오기
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
+            const mainContent = document.getElementById('mainResultContent').value.trim();
+            const futurePlan = document.getElementById('mainResultFuturePlan').value.trim();
+            
+            // 스케치 1 정보
+            const sketchTitle1 = document.getElementById('mainSketchTitle1').value.trim();
+            const sketchFile1 = document.getElementById('mainSketchFile1').files[0];
+            
+            // 스케치 2 정보
+            const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
+            const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
+            
+            // 유효성 검사
+            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
+                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
+            // 기존 실시결과 데이터 조회
+            const existingResults = await loadResultData();
+            let existingResult = null;
+            if (existingResults && existingResults.length > 0) {
+                existingResult = existingResults.find(result => 
+                    result.session === session && result.datetime === datetime
+                );
+            }
+            
+            // 실시결과 데이터 구성 (기존 스케치 데이터로 초기화)
+            const resultData = {
+                session: session,
+                datetime: datetime,
+                mainContent: mainContent,
+                futurePlan: futurePlan,
+                sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
+            };
+            
+            // 스케치 1 처리
+            if (sketchFile1) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile1, '');
+                if (uploadResult.success) {
+                    const sketch1Data = {
+                        title: sketchTitle1,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile1.name
+                    };
+                    // 기존 스케치 1이 있으면 교체, 없으면 추가
+                    if (resultData.sketches.length > 0) {
+                        resultData.sketches[0] = sketch1Data;
+                    } else {
+                        resultData.sketches.push(sketch1Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
+                    this.showLoading(false);
+                    return;
+                }
+            } else if (sketchTitle1 && resultData.sketches.length > 0) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 1의 제목만 업데이트)
+                resultData.sketches[0].title = sketchTitle1;
+            }
+            
+            // 스케치 2 처리
+            if (sketchFile2) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile2, '');
+                if (uploadResult.success) {
+                    const sketch2Data = {
+                        title: sketchTitle2,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile2.name
+                    };
+                    // 기존 스케치 2가 있으면 교체, 없으면 추가
+                    if (resultData.sketches.length > 1) {
+                        resultData.sketches[1] = sketch2Data;
+                    } else if (resultData.sketches.length === 1) {
+                        resultData.sketches.push(sketch2Data);
+                    } else {
+                        resultData.sketches.push(sketch2Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
+                    this.showLoading(false);
+                    return;
+                }
+            } else if (sketchTitle2 && resultData.sketches.length > 1) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 2의 제목만 업데이트)
+                resultData.sketches[1].title = sketchTitle2;
+            }
+            
+            // 데이터 저장
+            const result = await saveResultData(resultData);
+            
+            if (result.success) {
+                this.showSuccessToast('메인화면 실시결과가 성공적으로 저장되었습니다.');
+            } else {
+                this.showErrorToast(result.message);
+            }
+            
+        } catch (error) {
+            console.error('메인화면 실시결과 저장 오류:', error);
+            this.showErrorToast('메인화면 실시결과 저장 중 오류가 발생했습니다.');
+        } finally {
+            this.showLoading(false);
+        }
     }
 
     // 실시결과 PDF용 HTML 콘텐츠 생성
