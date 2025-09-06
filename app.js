@@ -3989,29 +3989,42 @@ class SeminarPlanningApp {
     parseMainContent(text) {
         if (!text) return '미입력';
         
-        // □ 구분값으로 분리하여 각각을 새로운 라인으로 처리
-        const sections = text.split('□').filter(section => section.trim());
+        // 줄바꿈으로 분리하여 각 줄을 처리
+        const lines = text.split('\n').filter(line => line.trim());
+        const result = [];
         
-        const parsedSections = sections.map(section => {
-            const trimmedSection = section.trim();
+        for (let line of lines) {
+            const trimmedLine = line.trim();
             
-            // - 가 있는 경우 4칸 띄우고 다음 라인으로 처리
-            if (trimmedSection.includes('-')) {
-                const subSections = trimmedSection.split('-').filter(sub => sub.trim());
-                return subSections.map((sub, index) => {
-                    const trimmedSub = sub.trim();
-                    if (index === 0) {
-                        return `  □ ${trimmedSub}`;
-                    } else {
-                        return `      - ${trimmedSub}`;
-                    }
-                }).join('\n');
-            } else {
-                return `  □ ${trimmedSection}`;
+            if (trimmedLine.startsWith('□ ')) {
+                // □ 로 시작하는 경우: 2칸 띄우고 출력
+                const content = trimmedLine.substring(2).trim(); // '□ ' 제거
+                result.push(`  □ ${content}`);
+            } else if (trimmedLine.startsWith('- ')) {
+                // - 로 시작하는 경우: 4칸 띄우고 출력
+                const content = trimmedLine.substring(2).trim(); // '- ' 제거
+                result.push(`      - ${content}`);
+            } else if (trimmedLine.includes('□')) {
+                // □ 가 포함된 경우 (공백 없이)
+                const parts = trimmedLine.split('□');
+                if (parts.length > 1) {
+                    const content = parts[1].trim();
+                    result.push(`  □ ${content}`);
+                }
+            } else if (trimmedLine.includes('-')) {
+                // - 가 포함된 경우 (공백 없이)
+                const parts = trimmedLine.split('-');
+                if (parts.length > 1) {
+                    const content = parts[1].trim();
+                    result.push(`      - ${content}`);
+                }
+            } else if (trimmedLine) {
+                // 일반 텍스트인 경우
+                result.push(`  □ ${trimmedLine}`);
             }
-        });
+        }
         
-        return parsedSections.join('\n');
+        return result.join('\n');
     }
 
     // 참석자 데이터 가져오기
