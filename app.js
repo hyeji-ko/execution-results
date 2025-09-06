@@ -1047,6 +1047,14 @@ class SeminarPlanningApp {
                 }
             }
             
+            // 참석여부 필드 처리
+            if (item.attendance) {
+                const attendanceSelect = row.querySelector('select[data-field="attendance"]');
+                if (attendanceSelect) {
+                    attendanceSelect.value = item.attendance;
+                }
+            }
+            
             // 이벤트 리스너 추가 (모바일 환경 고려)
             this.bindAttendeeRowEvents(row, index);
             
@@ -2199,6 +2207,14 @@ class SeminarPlanningApp {
             // 새 창에서 HTML 열기 (about:blank 문제 해결)
             const newWindow = window.open(url, '_blank', 'width=800,height=600');
             
+            if (!newWindow) {
+                // 팝업이 차단된 경우 대체 방법 사용
+                this.showErrorToast('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하거나, PDFMake 방식을 사용해주세요.');
+                this.showLoading(false);
+                URL.revokeObjectURL(url);
+                return;
+            }
+            
             // 창이 로드된 후 처리
             newWindow.onload = () => {
                 // 문서 제목 설정
@@ -2242,6 +2258,14 @@ class SeminarPlanningApp {
             
             // 새 창에서 HTML 열기
             const newWindow = window.open('', '_blank');
+            
+            if (!newWindow) {
+                // 팝업이 차단된 경우 대체 방법 사용
+                this.showErrorToast('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하거나, PDFMake 방식을 사용해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
             newWindow.document.write(htmlContent);
             newWindow.document.close();
             
@@ -3893,6 +3917,14 @@ class SeminarPlanningApp {
             
             // 새 창에서 HTML 열기
             const newWindow = window.open('', '_blank');
+            
+            if (!newWindow) {
+                // 팝업이 차단된 경우 대체 방법 사용
+                this.showErrorToast('팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하거나, PDFMake 방식을 사용해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
             newWindow.document.write(htmlContent);
             newWindow.document.close();
             
@@ -3917,18 +3949,20 @@ class SeminarPlanningApp {
         
         attendeeRows.forEach(row => {
             const cells = row.querySelectorAll('td');
-            if (cells.length >= 5) {
+            if (cells.length >= 6) { // 참석여부 컬럼 추가로 6개 컬럼
                 const name = cells[1].querySelector('input')?.value || '';
                 const position = cells[2].querySelector('input')?.value || '';
                 const department = cells[3].querySelector('input')?.value || '';
                 const work = cells[4].querySelector('input')?.value || '';
+                const attendance = cells[5].querySelector('select')?.value || 'Y'; // 참석여부 값 가져오기
                 
                 if (name.trim()) {
                     attendees.push({
                         name: name.trim(),
                         position: position.trim(),
                         department: department.trim(),
-                        work: work.trim()
+                        work: work.trim(),
+                        attendance: attendance // 참석여부 필드 추가
                     });
                 }
             }
