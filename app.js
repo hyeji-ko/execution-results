@@ -312,6 +312,10 @@ class SeminarPlanningApp {
         console.log('currentData 키들:', Object.keys(this.currentData || {}));
         console.log('attendeeList 존재 여부:', 'attendeeList' in (this.currentData || {}));
         console.log('timeSchedule 존재 여부:', 'timeSchedule' in (this.currentData || {}));
+        console.log('populateForm에서 objective 값:', this.currentData.objective);
+        console.log('populateForm에서 datetime 값:', this.currentData.datetime);
+        console.log('populateForm에서 location 값:', this.currentData.location);
+        console.log('populateForm에서 attendees 값:', this.currentData.attendees);
         
         // currentData가 null이거나 undefined인 경우 처리
         if (!this.currentData) {
@@ -1055,8 +1059,8 @@ class SeminarPlanningApp {
         
         if (migrated) {
             console.log('참석자 데이터 마이그레이션 완료 - attendance 필드가 추가되었습니다.');
-            // 마이그레이션된 데이터를 즉시 저장
-            this.saveDataQuietly();
+            // 마이그레이션된 데이터를 즉시 저장하지 않음 (데이터 로딩 중이므로)
+            console.log('마이그레이션 완료 - 저장은 나중에 수행');
         } else {
             console.log('마이그레이션이 필요하지 않습니다.');
         }
