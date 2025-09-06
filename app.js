@@ -158,6 +158,34 @@ class SeminarPlanningApp {
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
+        
+        // 세미나 정보 변경 시 실시결과 데이터 자동 로드
+        this.bindResultDataEvents();
+    }
+
+    bindResultDataEvents() {
+        // 세미나 정보 변경 시 실시결과 데이터 자동 로드
+        const sessionSelect = document.getElementById('sessionSelect');
+        const sessionInput = document.getElementById('sessionInput');
+        const datetime = document.getElementById('datetime');
+        
+        if (sessionSelect) {
+            sessionSelect.addEventListener('change', () => {
+                setTimeout(() => this.loadMainResultData(), 100);
+            });
+        }
+        
+        if (sessionInput) {
+            sessionInput.addEventListener('change', () => {
+                setTimeout(() => this.loadMainResultData(), 100);
+            });
+        }
+        
+        if (datetime) {
+            datetime.addEventListener('change', () => {
+                setTimeout(() => this.loadMainResultData(), 100);
+            });
+        }
     }
 
     bindInputEvents() {
@@ -1176,6 +1204,10 @@ class SeminarPlanningApp {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
                 this.populateForm();
+                
+                // 메인화면 실시결과 데이터도 함께 로드
+                await this.loadMainResultData();
+                
                 this.showSuccessToast('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
                 this.showErrorToast(result.message);
@@ -2982,7 +3014,7 @@ class SeminarPlanningApp {
                     }
                     
                     // 폼에 데이터 로드
-                    this.loadDataFromExcel(singleSeminar);
+                    await this.loadDataFromExcel(singleSeminar);
                 } else {
                     // 다중 세미나 형식으로 파싱 시도
                     console.log('🔄 다중 세미나 형식으로 파싱 시도');
@@ -3023,7 +3055,7 @@ class SeminarPlanningApp {
                         }
                         
                         // 폼에 데이터 로드
-                        this.loadDataFromExcel(seminar);
+                        await this.loadDataFromExcel(seminar);
                     } else {
                         console.error('❌ 유효한 세미나 데이터를 찾을 수 없음');
                         console.error('❌ 단일 세미나 파싱 결과:', singleSeminar);
@@ -3440,13 +3472,16 @@ class SeminarPlanningApp {
     }
 
     // 엑셀 데이터를 폼에 로드
-    loadDataFromExcel(data) {
+    async loadDataFromExcel(data) {
         // 현재 데이터 업데이트
         this.currentData = data;
         this.currentDocumentId = null; // 새 데이터이므로 ID 초기화
         
         // 폼 필드 업데이트
         this.populateForm();
+        
+        // 메인화면 실시결과 데이터도 함께 로드
+        await this.loadMainResultData();
     }
 
     // 일괄삭제 메서드 (모든 데이터 삭제)
@@ -4233,6 +4268,104 @@ class SeminarPlanningApp {
         }
         
         return sketches;
+    }
+
+    // 메인화면 실시결과 데이터 로드
+    async loadMainResultData() {
+        try {
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                console.log('⚠️ 세미나 정보가 없어서 실시결과 데이터를 로드할 수 없습니다.');
+                return;
+            }
+            
+            console.log('🔍 메인화면 실시결과 데이터 로드:', { session, datetime });
+            
+            // 실시결과 데이터 조회
+            const results = await loadResultData();
+            let resultData = null;
+            if (results && results.length > 0) {
+                resultData = results.find(result => 
+                    result.session === session && result.datetime === datetime
+                );
+            }
+            
+            if (resultData) {
+                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드');
+                this.populateMainResultForm(resultData);
+            } else {
+                console.log('ℹ️ 기존 실시결과 데이터가 없음');
+                this.clearMainResultForm();
+            }
+            
+        } catch (error) {
+            console.error('메인화면 실시결과 데이터 로드 오류:', error);
+        }
+    }
+
+    // 메인화면 실시결과 폼에 데이터 채우기
+    populateMainResultForm(resultData) {
+        // 주요 내용과 향후 계획 채우기
+        document.getElementById('mainResultContent').value = resultData.mainContent || '';
+        document.getElementById('mainResultFuturePlan').value = resultData.futurePlan || '';
+        
+        // 스케치 데이터 처리
+        if (resultData.sketches && resultData.sketches.length > 0) {
+            // 스케치 1
+            if (resultData.sketches[0]) {
+                const sketch1 = resultData.sketches[0];
+                document.getElementById('mainSketchTitle1').value = sketch1.title || '';
+                
+                if (sketch1.imageData) {
+                    // Base64 이미지 표시
+                    document.getElementById('mainPreviewImage1').src = sketch1.imageData;
+                    document.getElementById('mainFileName1').textContent = sketch1.fileName || '업로드된 이미지';
+                    document.getElementById('mainFilePreview1').classList.remove('hidden');
+                    document.getElementById('mainFileUploadArea1').classList.add('hidden');
+                }
+            }
+            
+            // 스케치 2
+            if (resultData.sketches[1]) {
+                const sketch2 = resultData.sketches[1];
+                document.getElementById('mainSketchTitle2').value = sketch2.title || '';
+                
+                if (sketch2.imageData) {
+                    // Base64 이미지 표시
+                    document.getElementById('mainPreviewImage2').src = sketch2.imageData;
+                    document.getElementById('mainFileName2').textContent = sketch2.fileName || '업로드된 이미지';
+                    document.getElementById('mainFilePreview2').classList.remove('hidden');
+                    document.getElementById('mainFileUploadArea2').classList.add('hidden');
+                }
+            }
+        } else {
+            // 스케치가 없으면 초기화
+            this.clearMainSketchFields();
+        }
+    }
+
+    // 메인화면 실시결과 폼 초기화
+    clearMainResultForm() {
+        document.getElementById('mainResultContent').value = '';
+        document.getElementById('mainResultFuturePlan').value = '';
+        this.clearMainSketchFields();
+    }
+
+    // 메인화면 스케치 필드 초기화
+    clearMainSketchFields() {
+        // 스케치 1 초기화
+        document.getElementById('mainSketchTitle1').value = '';
+        document.getElementById('mainSketchFile1').value = '';
+        document.getElementById('mainFilePreview1').classList.add('hidden');
+        document.getElementById('mainFileUploadArea1').classList.remove('hidden');
+        
+        // 스케치 2 초기화
+        document.getElementById('mainSketchTitle2').value = '';
+        document.getElementById('mainSketchFile2').value = '';
+        document.getElementById('mainFilePreview2').classList.add('hidden');
+        document.getElementById('mainFileUploadArea2').classList.remove('hidden');
     }
 
     // 실시결과 PDF용 HTML 콘텐츠 생성
