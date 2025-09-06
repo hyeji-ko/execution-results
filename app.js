@@ -3968,13 +3968,13 @@ class SeminarPlanningApp {
                 return subSections.map((sub, index) => {
                     const trimmedSub = sub.trim();
                     if (index === 0) {
-                        return `□ ${trimmedSub}`;
+                        return `&nbsp;&nbsp;□ ${trimmedSub}`;
                     } else {
-                        return `    - ${trimmedSub}`;
+                        return `&nbsp;&nbsp;&nbsp;&nbsp;- ${trimmedSub}`;
                     }
                 }).join('\n');
             } else {
-                return `□ ${trimmedSection}`;
+                return `&nbsp;&nbsp;□ ${trimmedSection}`;
             }
         });
         
