@@ -286,6 +286,10 @@ class SeminarPlanningApp {
                 console.log('currentDocumentId:', this.currentDocumentId);
                 console.log('timeSchedule 원본 데이터:', this.currentData.timeSchedule);
                 console.log('attendeeList 원본 데이터:', this.currentData.attendeeList);
+                console.log('attendeeList 상세 데이터:');
+                this.currentData.attendeeList.forEach((item, index) => {
+                    console.log(`  [${index}] name: ${item.name}, attendance: ${item.attendance}`);
+                });
                 console.log('timeSchedule 타입:', typeof this.currentData.timeSchedule);
                 console.log('attendeeList 타입:', typeof this.currentData.attendeeList);
                 console.log('objective 값:', this.currentData.objective);
@@ -1050,6 +1054,8 @@ class SeminarPlanningApp {
         
         let migrated = false;
         this.currentData.attendeeList.forEach((item, index) => {
+            console.log(`마이그레이션 체크: index=${index}, name=${item.name}, attendance='${item.attendance}', type=${typeof item.attendance}`);
+            
             // attendance 필드가 없거나 유효하지 않은 값인 경우에만 마이그레이션
             if (item.attendance === undefined || item.attendance === null || item.attendance === '') {
                 item.attendance = 'Y';
