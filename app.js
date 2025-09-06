@@ -633,6 +633,7 @@ class SeminarPlanningApp {
         if (this.currentData.attendeeList[index]) {
             this.currentData.attendeeList[index][field] = value;
             console.log(`참석자 데이터 업데이트: index=${index}, field=${field}, value=${value}`);
+            console.log(`업데이트 후 참석자 데이터:`, this.currentData.attendeeList[index]);
             
             // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
             if (field === 'department') {
@@ -884,6 +885,8 @@ class SeminarPlanningApp {
         const tbody = document.getElementById('attendeeTableBody');
         tbody.innerHTML = '';
         
+        console.log('참석자 데이터 전체:', this.currentData.attendeeList);
+        
         this.currentData.attendeeList.forEach((item, index) => {
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
             const row = document.createElement('tr');
@@ -1054,19 +1057,26 @@ class SeminarPlanningApp {
                 // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'Y'로 설정
                 const attendanceValue = item.attendance || 'Y';
                 
+                console.log(`참석여부 디버깅: index=${index}, item.attendance=${item.attendance}, attendanceValue=${attendanceValue}`);
+                
+                // 강제로 value 설정
+                attendanceSelect.value = attendanceValue;
+                
                 // 모든 옵션의 selected 속성 제거
                 const options = attendanceSelect.querySelectorAll('option');
                 options.forEach(option => {
                     option.removeAttribute('selected');
+                    option.selected = false;
                 });
                 
                 // 해당 값의 옵션에 selected 속성 추가
                 const targetOption = attendanceSelect.querySelector(`option[value="${attendanceValue}"]`);
                 if (targetOption) {
                     targetOption.setAttribute('selected', 'selected');
+                    targetOption.selected = true;
                 }
                 
-                // value 속성도 설정
+                // 다시 한번 value 설정
                 attendanceSelect.value = attendanceValue;
                 
                 console.log(`참석여부 설정: index=${index}, value=${attendanceValue}, item.attendance=${item.attendance}`);
