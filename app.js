@@ -120,8 +120,6 @@ class SeminarPlanningApp {
         // 조회 버튼
         document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
         
-        // 실시결과 등록 버튼
-        document.getElementById('addResultBtn').addEventListener('click', () => this.showResultModal());
         
         // 시간 계획 행 추가
         document.getElementById('addTimeRow').addEventListener('click', () => this.addTimeRow());
@@ -133,19 +131,6 @@ class SeminarPlanningApp {
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportResultPDF').addEventListener('click', () => this.exportResultToPDF());
         
-        // 실시결과 모달 관련 이벤트들
-        document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
-        document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
-        
-        // 스케치 1 이벤트
-        document.getElementById('sketchFile1').addEventListener('change', (e) => this.handleFileUpload(e, 1));
-        document.getElementById('removeFile1').addEventListener('click', () => this.removeFile(1));
-        document.getElementById('fileUploadArea1').addEventListener('click', () => document.getElementById('sketchFile1').click());
-        
-        // 스케치 2 이벤트
-        document.getElementById('sketchFile2').addEventListener('change', (e) => this.handleFileUpload(e, 2));
-        document.getElementById('removeFile2').addEventListener('click', () => this.removeFile(2));
-        document.getElementById('fileUploadArea2').addEventListener('click', () => document.getElementById('sketchFile2').click());
         
         // 메인화면 실시결과 스케치 이벤트
         document.getElementById('mainSketchFile1').addEventListener('change', (e) => this.handleMainFileUpload(e, 1));
@@ -1414,7 +1399,91 @@ class SeminarPlanningApp {
         }
     }
 
-        // 검색 결과 표시
+        // 회차 리스트박스 생성
+    createSessionSelect(currentSession, itemId) {
+        const sessionOptions = [
+            { value: '', text: '선택하세요' },
+            { value: '제 1회', text: '제 1회' },
+            { value: '제 2회', text: '제 2회' },
+            { value: '제 3회', text: '제 3회' },
+            { value: '제 4회', text: '제 4회' },
+            { value: '제 5회', text: '제 5회' },
+            { value: '제 6회', text: '제 6회' },
+            { value: '제 7회', text: '제 7회' },
+            { value: '제 8회', text: '제 8회' },
+            { value: '제 9회', text: '제 9회' },
+            { value: '제10회', text: '제10회' },
+            { value: '제11회', text: '제11회' },
+            { value: '제12회', text: '제12회' },
+            { value: '제13회', text: '제13회' },
+            { value: '제14회', text: '제14회' },
+            { value: '제15회', text: '제15회' },
+            { value: '제16회', text: '제16회' },
+            { value: '제17회', text: '제17회' },
+            { value: '제18회', text: '제18회' },
+            { value: '제19회', text: '제19회' },
+            { value: '제20회', text: '제20회' },
+            { value: '직접입력', text: '직접입력' }
+        ];
+
+        let optionsHtml = '';
+        sessionOptions.forEach(option => {
+            const selected = option.value === currentSession ? 'selected' : '';
+            optionsHtml += `<option value="${option.value}" ${selected}>${option.text}</option>`;
+        });
+
+        return `
+            <select class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white" 
+                    onchange="app.updateSessionInSearch(this.value, '${itemId}')"
+                    onclick="event.stopPropagation()">
+                ${optionsHtml}
+            </select>
+        `;
+    }
+
+    // 검색 결과에서 회차 업데이트
+    async updateSessionInSearch(newSession, itemId) {
+        try {
+            if (!newSession) {
+                this.showErrorToast('회차를 선택해주세요.');
+                return;
+            }
+
+            this.showLoading(true);
+            console.log('🔄 회차 업데이트 시작:', { newSession, itemId });
+
+            // Firebase에서 해당 문서 조회
+            const result = await this.getSeminarById(itemId);
+            
+            if (result.success) {
+                // 회차 업데이트
+                const updatedData = {
+                    ...result.data,
+                    session: newSession
+                };
+
+                // 데이터 업데이트
+                const updateResult = await updateData(itemId, updatedData);
+                
+                if (updateResult.success) {
+                    this.showSuccessToast('회차가 성공적으로 업데이트되었습니다.');
+                    // 조회 결과 새로고침
+                    await this.showSearchModal();
+                } else {
+                    this.showErrorToast(updateResult.message);
+                }
+            } else {
+                this.showErrorToast('데이터를 찾을 수 없습니다.');
+            }
+        } catch (error) {
+            console.error('회차 업데이트 오류:', error);
+            this.showErrorToast('회차 업데이트 중 오류가 발생했습니다.');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    // 검색 결과 표시
     displaySearchResults(data) {
         const tbody = document.getElementById('searchResultBody');
         tbody.innerHTML = '';
@@ -1450,18 +1519,12 @@ class SeminarPlanningApp {
             const location = this.ensureStringValue(item.location) || '미입력';
             const attendees = this.ensureStringValue(item.attendees) || '미입력';
             
-            // 회차 배지 스타일
-            const sessionBadge = session !== '미입력' ? 
-                `<span class="inline-flex items-center px-5 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200 min-w-[100px] justify-center">
-                    <i class="fas fa-hashtag mr-2"></i>${this.escapeHtml(session)}
-                </span>` : 
-                `<span class="inline-flex items-center px-5 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-600 min-w-[100px] justify-center">
-                    <i class="fas fa-minus mr-2"></i>미입력
-                </span>`;
+            // 회차 리스트박스 생성
+            const sessionSelect = this.createSessionSelect(session, item.id);
             
             row.innerHTML = `
                 <td class="px-6 py-4 w-40">
-                    ${sessionBadge}
+                    ${sessionSelect}
                 </td>
                 <td class="px-4 py-4 w-48">
                     <div class="flex items-center space-x-2 group-hover:text-blue-600 transition-colors duration-200">
@@ -3605,305 +3668,13 @@ class SeminarPlanningApp {
         }
     }
 
-    // 실시결과 모달 표시
-    async showResultModal() {
-        try {
-            // 현재 메인화면의 회차와 일시를 가져와서 설정
-            let session = document.getElementById('sessionSelect').value;
-            const sessionInput = document.getElementById('sessionInput').value;
-            const datetime = document.getElementById('datetime').value;
-            
-            // 직접입력이 선택된 경우 sessionInput 값을 사용
-            if (session === '직접입력' && sessionInput) {
-                session = sessionInput;
-            }
-            
-            if (!session || !datetime) {
-                this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
-                return;
-            }
-            
-            // 모달에 현재 세미나 정보 설정
-            document.getElementById('resultSession').value = session;
-            document.getElementById('resultDatetime').value = datetime;
-            
-            // 기존 실시결과 조회
-            const hasExistingData = await this.loadExistingResult(session, datetime);
-            
-            // 모달 설명 업데이트
-            const description = document.getElementById('resultModalDescription');
-            if (hasExistingData) {
-                description.textContent = '기존에 등록된 실시결과를 조회했습니다. 수정 후 저장하세요.';
-            } else {
-                description.textContent = '세미나 실시 후 결과를 등록하고 스케치를 업로드할 수 있습니다';
-            }
-            
-            // 모달 표시
-            document.getElementById('resultModal').classList.remove('hidden');
-        } catch (error) {
-            console.error('실시결과 모달 표시 오류:', error);
-            this.showErrorToast('모달을 표시하는 중 오류가 발생했습니다.');
-        }
-    }
-
-    // 실시결과 모달 닫기
-    closeResultModal() {
-        document.getElementById('resultModal').classList.add('hidden');
-        this.resetResultForm();
-    }
-
-    // 기존 실시결과 조회
-    async loadExistingResult(session, datetime) {
-        try {
-            const results = await loadResultData();
-            if (results && results.length > 0) {
-                // 해당 회차와 일시에 맞는 결과 찾기
-                const existingResult = results.find(result => 
-                    result.session === session && result.datetime === datetime
-                );
-                
-                if (existingResult) {
-                    // 기존 데이터로 폼 채우기
-                    this.populateResultForm(existingResult);
-                    return true; // 기존 데이터가 있음
-                }
-            }
-            
-            // 기존 데이터가 없으면 폼 초기화
-            this.resetResultForm();
-            return false; // 기존 데이터가 없음
-        } catch (error) {
-            console.error('기존 실시결과 조회 오류:', error);
-            this.resetResultForm();
-            return false;
-        }
-    }
-
-    // 실시결과 폼에 데이터 채우기
-    populateResultForm(resultData) {
-        // 기본 정보 채우기
-        document.getElementById('resultMainContent').value = resultData.mainContent || '';
-        document.getElementById('resultFuturePlan').value = resultData.futurePlan || '';
-        
-        // 스케치 데이터 처리
-        if (resultData.sketches && resultData.sketches.length > 0) {
-            // 스케치 1
-            if (resultData.sketches[0]) {
-                const sketch1 = resultData.sketches[0];
-                document.getElementById('sketchTitle1').value = sketch1.title || '';
-                
-                if (sketch1.imageData) {
-                    // Base64 이미지 표시
-                    document.getElementById('previewImage1').src = sketch1.imageData;
-                    document.getElementById('fileName1').textContent = sketch1.fileName || '업로드된 이미지';
-                    document.getElementById('filePreview1').classList.remove('hidden');
-                    document.getElementById('fileUploadArea1').classList.add('hidden');
-                }
-            }
-            
-            // 스케치 2
-            if (resultData.sketches[1]) {
-                const sketch2 = resultData.sketches[1];
-                document.getElementById('sketchTitle2').value = sketch2.title || '';
-                
-                if (sketch2.imageData) {
-                    // Base64 이미지 표시
-                    document.getElementById('previewImage2').src = sketch2.imageData;
-                    document.getElementById('fileName2').textContent = sketch2.fileName || '업로드된 이미지';
-                    document.getElementById('filePreview2').classList.remove('hidden');
-                    document.getElementById('fileUploadArea2').classList.add('hidden');
-                }
-            }
-        } else {
-            // 스케치가 없으면 초기화
-            this.resetSketchFields();
-        }
-    }
-
-    // 스케치 필드만 초기화
-    resetSketchFields() {
-        // 스케치 1 초기화
-        document.getElementById('sketchTitle1').value = '';
-        document.getElementById('sketchFile1').value = '';
-        document.getElementById('filePreview1').classList.add('hidden');
-        document.getElementById('fileUploadArea1').classList.remove('hidden');
-        
-        // 스케치 2 초기화
-        document.getElementById('sketchTitle2').value = '';
-        document.getElementById('sketchFile2').value = '';
-        document.getElementById('filePreview2').classList.add('hidden');
-        document.getElementById('fileUploadArea2').classList.remove('hidden');
-    }
-
-    // 실시결과 폼 초기화
-    resetResultForm() {
-        // 세미나 정보는 유지하고 나머지만 초기화
-        document.getElementById('resultMainContent').value = '';
-        document.getElementById('resultFuturePlan').value = '';
-        
-        // 스케치 필드 초기화
-        this.resetSketchFields();
-    }
 
 
-    // 파일 업로드 처리
-    handleFileUpload(event, sketchNumber) {
-        const file = event.target.files[0];
-        if (file) {
-            // 파일 타입 검증
-            if (!file.type.startsWith('image/')) {
-                this.showErrorToast('이미지 파일만 업로드 가능합니다.');
-                return;
-            }
-            
-            // 파일 크기 검증 (5MB 제한)
-            if (file.size > 5 * 1024 * 1024) {
-                this.showErrorToast('파일 크기는 5MB를 초과할 수 없습니다.');
-                return;
-            }
-            
-            // 미리보기 표시
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById(`previewImage${sketchNumber}`).src = e.target.result;
-                document.getElementById(`fileName${sketchNumber}`).textContent = file.name;
-                document.getElementById(`filePreview${sketchNumber}`).classList.remove('hidden');
-                document.getElementById(`fileUploadArea${sketchNumber}`).classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-    }
 
-    // 파일 제거
-    removeFile(sketchNumber) {
-        document.getElementById(`sketchFile${sketchNumber}`).value = '';
-        document.getElementById(`filePreview${sketchNumber}`).classList.add('hidden');
-        document.getElementById(`fileUploadArea${sketchNumber}`).classList.remove('hidden');
-    }
 
-    // 실시결과 저장
-    async saveResultData() {
-        try {
-            const session = document.getElementById('resultSession').value;
-            const datetime = document.getElementById('resultDatetime').value;
-            const mainContent = document.getElementById('resultMainContent').value.trim();
-            const futurePlan = document.getElementById('resultFuturePlan').value.trim();
-            
-            // 스케치 1 정보
-            const sketchTitle1 = document.getElementById('sketchTitle1').value.trim();
-            const sketchFile1 = document.getElementById('sketchFile1').files[0];
-            
-            // 스케치 2 정보
-            const sketchTitle2 = document.getElementById('sketchTitle2').value.trim();
-            const sketchFile2 = document.getElementById('sketchFile2').files[0];
-            
-            // 유효성 검사
-            if (!session || !datetime) {
-                this.showErrorToast('세미나 정보가 없습니다.');
-                return;
-            }
-            
-            // 기존 실시결과 데이터 조회 (기존 스케치 데이터 보존을 위해)
-            const existingResults = await loadResultData();
-            let existingResult = null;
-            if (existingResults && existingResults.length > 0) {
-                existingResult = existingResults.find(result => 
-                    result.session === session && result.datetime === datetime
-                );
-            }
-            
-            // 기존 데이터가 있는지 확인
-            const hasExistingData = existingResult && (
-                existingResult.mainContent || 
-                existingResult.futurePlan || 
-                (existingResult.sketches && existingResult.sketches.length > 0)
-            );
-            
-            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2 && !hasExistingData) {
-                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
-                return;
-            }
-            
-            this.showLoading(true);
-            
-            // 실시결과 데이터 구성 (기존 스케치 데이터로 초기화)
-            const resultData = {
-                session: session,
-                datetime: datetime,
-                mainContent: mainContent,
-                futurePlan: futurePlan,
-                sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
-            };
-            
-            // 스케치 1 처리
-            if (sketchFile1) {
-                // 새 파일이 업로드된 경우
-                const uploadResult = await uploadImage(sketchFile1, '');
-                if (uploadResult.success) {
-                    const sketch1Data = {
-                        title: sketchTitle1,
-                        imageData: uploadResult.url,
-                        fileName: sketchFile1.name
-                    };
-                    // 기존 스케치 1이 있으면 교체, 없으면 추가
-                    if (resultData.sketches.length > 0) {
-                        resultData.sketches[0] = sketch1Data;
-                    } else {
-                        resultData.sketches.push(sketch1Data);
-                    }
-                } else {
-                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
-                    return;
-                }
-            } else if (sketchTitle1 && resultData.sketches.length > 0) {
-                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 1의 제목만 업데이트)
-                resultData.sketches[0].title = sketchTitle1;
-            }
-            
-            // 스케치 2 처리
-            if (sketchFile2) {
-                // 새 파일이 업로드된 경우
-                const uploadResult = await uploadImage(sketchFile2, '');
-                if (uploadResult.success) {
-                    const sketch2Data = {
-                        title: sketchTitle2,
-                        imageData: uploadResult.url,
-                        fileName: sketchFile2.name
-                    };
-                    // 기존 스케치 2가 있으면 교체, 없으면 추가
-                    if (resultData.sketches.length > 1) {
-                        resultData.sketches[1] = sketch2Data;
-                    } else if (resultData.sketches.length === 1) {
-                        resultData.sketches.push(sketch2Data);
-                    } else {
-                        resultData.sketches.push(sketch2Data);
-                    }
-                } else {
-                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
-                    return;
-                }
-            } else if (sketchTitle2 && resultData.sketches.length > 1) {
-                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 2의 제목만 업데이트)
-                resultData.sketches[1].title = sketchTitle2;
-            }
-            
-            // 데이터 저장
-            const result = await saveResultData(resultData);
-            
-            if (result.success) {
-                this.showSuccessToast('실시결과가 성공적으로 저장되었습니다.');
-                this.closeResultModal();
-            } else {
-                this.showErrorToast(result.message);
-            }
-            
-        } catch (error) {
-            console.error('실시결과 저장 오류:', error);
-            this.showErrorToast('실시결과 저장 중 오류가 발생했습니다.');
-        } finally {
-            this.showLoading(false);
-        }
-    }
+
+
+
 
     // PDF 실시결과 내보내기
     async exportResultToPDF() {
@@ -3925,23 +3696,8 @@ class SeminarPlanningApp {
             }
             
             // 실시결과 데이터 조회
-            const results = await loadResultData();
-            console.log('📊 전체 실시결과 데이터:', results);
-            
-            let resultData = null;
-            if (results && results.length > 0) {
-                resultData = results.find(result => {
-                    console.log('🔍 비교 중:', { 
-                        resultSession: result.session, 
-                        currentSession: session,
-                        resultDatetime: result.datetime, 
-                        currentDatetime: datetime,
-                        sessionMatch: result.session === session,
-                        datetimeMatch: result.datetime === datetime
-                    });
-                    return result.session === session && result.datetime === datetime;
-                });
-            }
+            const resultData = await loadResultDataByKey(session, datetime);
+            console.log('📊 조회된 실시결과 데이터:', resultData);
             
             console.log('✅ 찾은 실시결과 데이터:', resultData);
             
@@ -4287,24 +4043,9 @@ class SeminarPlanningApp {
                 return;
             }
             
-            // 실시결과 데이터 조회
-            const results = await loadResultData();
-            console.log('📊 전체 실시결과 데이터:', results);
-            
-            let resultData = null;
-            if (results && results.length > 0) {
-                resultData = results.find(result => {
-                    console.log('🔍 비교 중:', { 
-                        resultSession: result.session, 
-                        currentSession: session,
-                        resultDatetime: result.datetime, 
-                        currentDatetime: datetime,
-                        sessionMatch: result.session === session,
-                        datetimeMatch: result.datetime === datetime
-                    });
-                    return result.session === session && result.datetime === datetime;
-                });
-            }
+            // 특정 회차_일시의 실시결과 데이터 조회
+            const resultData = await loadResultDataByKey(session, datetime);
+            console.log('📊 조회된 실시결과 데이터:', resultData);
             
             if (resultData) {
                 console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드:', resultData);
@@ -4463,13 +4204,7 @@ class SeminarPlanningApp {
             }
             
             // 기존 실시결과 데이터 조회
-            const existingResults = await loadResultData();
-            let existingResult = null;
-            if (existingResults && existingResults.length > 0) {
-                existingResult = existingResults.find(result => 
-                    result.session === session && result.datetime === datetime
-                );
-            }
+            const existingResult = await loadResultDataByKey(session, datetime);
             
             // 실시결과 데이터 구성 (기존 스케치 데이터로 초기화)
             const resultData = {

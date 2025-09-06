@@ -52,21 +52,36 @@ async function deleteImage(path) {
     return { success: true };
 }
 
-// 실시결과 저장 함수
+// 실시결과 저장 함수 (회차_일시를 키값으로 사용)
 async function saveResultData(data) {
     try {
+        if (!data.session || !data.datetime) {
+            return { success: false, message: '회차와 일시 정보가 필요합니다.' };
+        }
+
+        // 회차_일시를 키값으로 사용
+        const key = `${data.session}_${data.datetime}`;
+        
         if (useLocalStorage) {
-            // 로컬 스토리지 사용
-            localStorage.setItem('seminarResult', JSON.stringify(data));
-            return { success: true, message: '로컬 스토리지에 저장되었습니다.' };
-        } else {
-            // Firebase 사용
-            const docRef = await db.collection('seminarResults').add({
+            // 로컬 스토리지 사용 - 회차_일시를 키로 사용
+            const existingResults = JSON.parse(localStorage.getItem('seminarResults') || '{}');
+            existingResults[key] = {
                 ...data,
+                key: key,
+                updatedAt: new Date().toISOString()
+            };
+            localStorage.setItem('seminarResults', JSON.stringify(existingResults));
+            return { success: true, message: '로컬 스토리지에 저장되었습니다.', key: key };
+        } else {
+            // Firebase 사용 - 회차_일시를 문서 ID로 사용
+            const docRef = db.collection('seminarResults').doc(key);
+            await docRef.set({
+                ...data,
+                key: key,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            return { success: true, message: 'Firebase에 저장되었습니다.', id: docRef.id };
+            }, { merge: true });
+            return { success: true, message: 'Firebase에 저장되었습니다.', key: key };
         }
     } catch (error) {
         console.error('실시결과 저장 오류:', error);
@@ -74,16 +89,20 @@ async function saveResultData(data) {
     }
 }
 
-// 실시결과 조회 함수
+// 실시결과 조회 함수 (모든 데이터 반환)
 async function loadResultData() {
     try {
         if (useLocalStorage) {
-            // 로컬 스토리지 사용
-            const data = localStorage.getItem('seminarResult');
-            return data ? JSON.parse(data) : null;
+            // 로컬 스토리지 사용 - 모든 실시결과 데이터 반환
+            const data = localStorage.getItem('seminarResults');
+            if (data) {
+                const results = JSON.parse(data);
+                return Object.values(results);
+            }
+            return [];
         } else {
-            // Firebase 사용
-            const snapshot = await db.collection('seminarResults').orderBy('createdAt', 'desc').get();
+            // Firebase 사용 - 모든 실시결과 데이터 반환
+            const snapshot = await db.collection('seminarResults').orderBy('updatedAt', 'desc').get();
             const results = [];
             snapshot.forEach(doc => {
                 results.push({ id: doc.id, ...doc.data() });
@@ -92,6 +111,38 @@ async function loadResultData() {
         }
     } catch (error) {
         console.error('실시결과 조회 오류:', error);
+        return [];
+    }
+}
+
+// 특정 회차_일시의 실시결과 조회 함수
+async function loadResultDataByKey(session, datetime) {
+    try {
+        if (!session || !datetime) {
+            return null;
+        }
+
+        const key = `${session}_${datetime}`;
+        
+        if (useLocalStorage) {
+            // 로컬 스토리지 사용
+            const data = localStorage.getItem('seminarResults');
+            if (data) {
+                const results = JSON.parse(data);
+                return results[key] || null;
+            }
+            return null;
+        } else {
+            // Firebase 사용
+            const docRef = db.collection('seminarResults').doc(key);
+            const doc = await docRef.get();
+            if (doc.exists) {
+                return { id: doc.id, ...doc.data() };
+            }
+            return null;
+        }
+    } catch (error) {
+        console.error('특정 실시결과 조회 오류:', error);
         return null;
     }
 }
@@ -322,6 +373,9 @@ window.loadData = loadData;
 window.updateData = updateData;
 window.deleteData = deleteData;
 window.loadAllPlans = loadAllPlans;
+window.saveResultData = saveResultData;
+window.loadResultData = loadResultData;
+window.loadResultDataByKey = loadResultDataByKey;
 window.db = db;
 window.useLocalStorage = useLocalStorage;
 
