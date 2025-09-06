@@ -1008,7 +1008,9 @@ class SeminarPlanningApp {
         if (this.currentData.timeSchedule) {
             if (typeof this.currentData.timeSchedule === 'object' && !Array.isArray(this.currentData.timeSchedule)) {
                 console.log('timeSchedule을 객체에서 배열로 변환');
-                this.currentData.timeSchedule = Object.values(this.currentData.timeSchedule);
+                // Object.values() 대신 키 순서대로 배열 생성
+                const keys = Object.keys(this.currentData.timeSchedule).sort((a, b) => parseInt(a) - parseInt(b));
+                this.currentData.timeSchedule = keys.map(key => this.currentData.timeSchedule[key]);
                 console.log('변환된 timeSchedule:', this.currentData.timeSchedule);
             } else if (Array.isArray(this.currentData.timeSchedule)) {
                 console.log('timeSchedule은 이미 배열입니다:', this.currentData.timeSchedule.length, '개 항목');
@@ -1022,7 +1024,9 @@ class SeminarPlanningApp {
         if (this.currentData.attendeeList) {
             if (typeof this.currentData.attendeeList === 'object' && !Array.isArray(this.currentData.attendeeList)) {
                 console.log('attendeeList를 객체에서 배열로 변환');
-                this.currentData.attendeeList = Object.values(this.currentData.attendeeList);
+                // Object.values() 대신 키 순서대로 배열 생성
+                const keys = Object.keys(this.currentData.attendeeList).sort((a, b) => parseInt(a) - parseInt(b));
+                this.currentData.attendeeList = keys.map(key => this.currentData.attendeeList[key]);
                 console.log('변환된 attendeeList:', this.currentData.attendeeList);
             } else if (Array.isArray(this.currentData.attendeeList)) {
                 console.log('attendeeList는 이미 배열입니다:', this.currentData.attendeeList.length, '개 항목');
@@ -1035,12 +1039,22 @@ class SeminarPlanningApp {
         console.log('데이터 구조 정규화 완료');
         console.log('정규화 후 timeSchedule:', this.currentData.timeSchedule);
         console.log('정규화 후 attendeeList:', this.currentData.attendeeList);
+        console.log('정규화 후 attendeeList 상세:');
+        this.currentData.attendeeList.forEach((item, index) => {
+            console.log(`  [${index}] name: ${item.name}, attendance: ${item.attendance}`);
+        });
     }
 
     // 참석자 데이터 마이그레이션 (기존 데이터 호환성)
     migrateAttendeeData() {
         console.log('migrateAttendeeData 시작');
         console.log('currentData.attendeeList:', this.currentData.attendeeList);
+        
+        // 이미 마이그레이션이 완료된 경우 건너뛰기
+        if (this.currentData.migrationCompleted) {
+            console.log('이미 마이그레이션이 완료되었습니다. 건너뜁니다.');
+            return;
+        }
         
         if (!this.currentData.attendeeList) {
             console.log('attendeeList가 없습니다.');
@@ -1056,11 +1070,12 @@ class SeminarPlanningApp {
         this.currentData.attendeeList.forEach((item, index) => {
             console.log(`마이그레이션 체크: index=${index}, name=${item.name}, attendance='${item.attendance}', type=${typeof item.attendance}`);
             
-            // attendance 필드가 없거나 유효하지 않은 값인 경우에만 마이그레이션
+            // attendance 필드가 없거나 유효하지 않은 경우에만 마이그레이션
             if (item.attendance === undefined || item.attendance === null || item.attendance === '') {
-                item.attendance = 'Y';
+                // 기본값을 'N'으로 설정 (참석하지 않음)
+                item.attendance = 'N';
                 migrated = true;
-                console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='Y' 추가`);
+                console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='N' 추가`);
             } else {
                 console.log(`참석자 데이터 유지: index=${index}, name=${item.name}, attendance='${item.attendance}'`);
             }
@@ -1090,10 +1105,20 @@ class SeminarPlanningApp {
                 return;
             }
 
-            const result = await window.updateData(this.currentDocumentId, this.currentData);
+            // 마이그레이션 완료 플래그 추가
+            const dataToSave = {
+                ...this.currentData,
+                migrationCompleted: true,
+                migrationDate: new Date().toISOString()
+            };
+
+            const result = await window.updateData(this.currentDocumentId, dataToSave);
             
             if (result.success) {
                 console.log('마이그레이션 데이터 저장 완료:', result);
+                // 현재 데이터도 업데이트
+                this.currentData.migrationCompleted = true;
+                this.currentData.migrationDate = dataToSave.migrationDate;
             } else {
                 console.error('마이그레이션 데이터 저장 실패:', result);
             }
