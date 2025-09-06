@@ -264,6 +264,8 @@ class SeminarPlanningApp {
 
     async loadInitialData() {
         try {
+            console.log('loadInitialData 시작');
+            
             // loadData 함수가 정의되어 있는지 확인
             if (typeof window.loadData !== 'function') {
                 console.warn('loadData 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
@@ -271,11 +273,22 @@ class SeminarPlanningApp {
             }
             
             // Firebase에서 저장된 데이터 불러오기
+            console.log('Firebase에서 데이터 로드 시작...');
             const result = await window.loadData();
+            console.log('Firebase 로드 결과:', result);
+            
             if (result.success) {
-                this.currentData = result.data;
+                // Firebase에서 가져온 데이터에서 id 필드 제거
+                const { id, ...dataWithoutId } = result.data;
+                this.currentData = dataWithoutId;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
+                console.log('currentData 설정 완료:', this.currentData);
+                console.log('currentDocumentId:', this.currentDocumentId);
+                
+                console.log('populateForm 호출 시작...');
                 await this.populateForm();
+                console.log('populateForm 호출 완료');
+                
                 console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
                 console.log('저장된 데이터가 없습니다:', result.message);
@@ -287,6 +300,10 @@ class SeminarPlanningApp {
 
     async populateForm() {
         console.log('populateForm 시작 - currentData:', this.currentData);
+        console.log('currentData 타입:', typeof this.currentData);
+        console.log('currentData 키들:', Object.keys(this.currentData || {}));
+        console.log('attendeeList 존재 여부:', 'attendeeList' in (this.currentData || {}));
+        console.log('timeSchedule 존재 여부:', 'timeSchedule' in (this.currentData || {}));
         
         // 참석자 데이터 마이그레이션 먼저 실행
         this.migrateAttendeeData();
@@ -787,10 +804,17 @@ class SeminarPlanningApp {
         tbody.innerHTML = '';
         
         console.log('시간 계획 데이터:', this.currentData.timeSchedule);
+        console.log('시간 계획 데이터 타입:', typeof this.currentData.timeSchedule);
         console.log('시간 계획 데이터 길이:', this.currentData.timeSchedule ? this.currentData.timeSchedule.length : 'undefined');
+        console.log('시간 계획 데이터가 배열인가?', Array.isArray(this.currentData.timeSchedule));
         
-        if (!this.currentData.timeSchedule || !Array.isArray(this.currentData.timeSchedule)) {
-            console.error('시간 계획 데이터가 없거나 배열이 아닙니다:', this.currentData.timeSchedule);
+        if (!this.currentData.timeSchedule) {
+            console.error('시간 계획 데이터가 undefined입니다.');
+            return;
+        }
+        
+        if (!Array.isArray(this.currentData.timeSchedule)) {
+            console.error('시간 계획 데이터가 배열이 아닙니다:', this.currentData.timeSchedule);
             return;
         }
         
@@ -919,7 +943,16 @@ class SeminarPlanningApp {
 
     // 참석자 데이터 마이그레이션 (기존 데이터 호환성)
     migrateAttendeeData() {
-        if (!this.currentData.attendeeList || !Array.isArray(this.currentData.attendeeList)) {
+        console.log('migrateAttendeeData 시작');
+        console.log('currentData.attendeeList:', this.currentData.attendeeList);
+        
+        if (!this.currentData.attendeeList) {
+            console.log('attendeeList가 없습니다.');
+            return;
+        }
+        
+        if (!Array.isArray(this.currentData.attendeeList)) {
+            console.log('attendeeList가 배열이 아닙니다.');
             return;
         }
         
@@ -936,6 +969,8 @@ class SeminarPlanningApp {
             console.log('참석자 데이터 마이그레이션 완료 - attendance 필드가 추가되었습니다.');
             // 마이그레이션된 데이터를 즉시 저장
             this.saveDataQuietly();
+        } else {
+            console.log('마이그레이션이 필요하지 않습니다.');
         }
     }
 
@@ -947,10 +982,17 @@ class SeminarPlanningApp {
         this.migrateAttendeeData();
         
         console.log('참석자 데이터 전체:', this.currentData.attendeeList);
+        console.log('참석자 데이터 타입:', typeof this.currentData.attendeeList);
         console.log('참석자 데이터 길이:', this.currentData.attendeeList ? this.currentData.attendeeList.length : 'undefined');
+        console.log('참석자 데이터가 배열인가?', Array.isArray(this.currentData.attendeeList));
         
-        if (!this.currentData.attendeeList || !Array.isArray(this.currentData.attendeeList)) {
-            console.error('참석자 데이터가 없거나 배열이 아닙니다:', this.currentData.attendeeList);
+        if (!this.currentData.attendeeList) {
+            console.error('참석자 데이터가 undefined입니다.');
+            return;
+        }
+        
+        if (!Array.isArray(this.currentData.attendeeList)) {
+            console.error('참석자 데이터가 배열이 아닙니다:', this.currentData.attendeeList);
             return;
         }
         
@@ -1426,7 +1468,9 @@ class SeminarPlanningApp {
             const result = await window.loadData();
             
             if (result.success) {
-                this.currentData = result.data;
+                // Firebase에서 가져온 데이터에서 id 필드 제거
+                const { id, ...dataWithoutId } = result.data;
+                this.currentData = dataWithoutId;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
                 await this.populateForm();
                 
