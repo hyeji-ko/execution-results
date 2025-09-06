@@ -146,6 +146,15 @@ class SeminarPlanningApp {
         document.getElementById('sketchFile2').addEventListener('change', (e) => this.handleFileUpload(e, 2));
         document.getElementById('removeFile2').addEventListener('click', () => this.removeFile(2));
         document.getElementById('fileUploadArea2').addEventListener('click', () => document.getElementById('sketchFile2').click());
+        
+        // 메인화면 실시결과 스케치 이벤트
+        document.getElementById('mainSketchFile1').addEventListener('change', (e) => this.handleMainFileUpload(e, 1));
+        document.getElementById('mainRemoveFile1').addEventListener('click', () => this.removeMainFile(1));
+        document.getElementById('mainFileUploadArea1').addEventListener('click', () => document.getElementById('mainSketchFile1').click());
+        
+        document.getElementById('mainSketchFile2').addEventListener('change', (e) => this.handleMainFileUpload(e, 2));
+        document.getElementById('mainRemoveFile2').addEventListener('click', () => this.removeMainFile(2));
+        document.getElementById('mainFileUploadArea2').addEventListener('click', () => document.getElementById('mainSketchFile2').click());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -364,6 +373,14 @@ class SeminarPlanningApp {
                            data-index="0" data-field="work-custom">
                 </td>
                 <td class="px-4 py-3 border-b">
+                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            data-index="0" data-field="attendance">
+                        <option value="">선택</option>
+                        <option value="Y">Y</option>
+                        <option value="N">N</option>
+                    </select>
+                </td>
+                <td class="px-4 py-3 border-b">
                     <button onclick="app.removeAttendeeRow(0)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm transition-colors duration-200">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -502,6 +519,14 @@ class SeminarPlanningApp {
                 <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
                        placeholder="업무를 직접 입력하세요" 
                        data-field="work-custom">
+            </td>
+            <td class="px-4 py-3 border-b">
+                <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                        data-field="attendance">
+                    <option value="">선택</option>
+                    <option value="Y">Y</option>
+                    <option value="N">N</option>
+                </select>
             </td>
             <td class="px-4 py-3 border-b">
                 <button onclick="app.removeAttendeeRow(${rowCount})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm transition-colors duration-200">
@@ -869,6 +894,15 @@ class SeminarPlanningApp {
                            placeholder="업무를 직접 입력하세요" 
                            data-field="work-custom"
                            onchange="app.updateAttendeeList(${index}, 'work', this.value)">
+                </td>
+                <td class="px-4 py-3 border-b">
+                    <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            data-field="attendance"
+                            onchange="app.updateAttendeeList(${index}, 'attendance', this.value)">
+                        <option value="">선택</option>
+                        <option value="Y">Y</option>
+                        <option value="N">N</option>
+                    </select>
                 </td>
                 <td class="px-4 py-3 border-b">
                     <button onclick="app.removeAttendeeRow(${index})" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm transition-colors duration-200">
@@ -3873,15 +3907,20 @@ class SeminarPlanningApp {
             
             console.log('✅ 찾은 실시결과 데이터:', resultData);
             
-            // 실시결과 데이터가 없어도 기본 정보로 PDF 생성
+            // 실시결과 데이터가 없어도 메인화면 데이터로 PDF 생성
             if (!resultData) {
-                console.log('⚠️ 실시결과 데이터가 없음. 기본 정보로 PDF 생성');
+                console.log('⚠️ 실시결과 데이터가 없음. 메인화면 데이터로 PDF 생성');
+                const mainResultData = this.getMainResultData();
                 resultData = {
                     session: session,
                     datetime: datetime,
-                    mainContent: '실시결과가 등록되지 않았습니다.',
-                    futurePlan: '향후 계획이 등록되지 않았습니다.',
-                    sketches: []
+                    mainContent: mainResultData.mainContent || '실시결과가 등록되지 않았습니다.',
+                    futurePlan: mainResultData.futurePlan || '향후 계획이 등록되지 않았습니다.',
+                    sketches: mainResultData.sketches.map(sketch => ({
+                        title: sketch.title,
+                        imageData: null, // 파일은 나중에 처리
+                        fileName: sketch.file.name
+                    }))
                 };
             }
             
@@ -4123,6 +4162,77 @@ class SeminarPlanningApp {
         });
         
         return attendees;
+    }
+
+    // 메인화면 파일 업로드 처리
+    handleMainFileUpload(event, sketchNumber) {
+        const file = event.target.files[0];
+        if (file) {
+            // 파일 타입 검증
+            if (!file.type.startsWith('image/')) {
+                this.showErrorToast('이미지 파일만 업로드 가능합니다.');
+                return;
+            }
+            
+            // 파일 크기 검증 (5MB 제한)
+            if (file.size > 5 * 1024 * 1024) {
+                this.showErrorToast('파일 크기는 5MB 이하여야 합니다.');
+                return;
+            }
+            
+            // 파일 미리보기
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById(`mainPreviewImage${sketchNumber}`).src = e.target.result;
+                document.getElementById(`mainFileName${sketchNumber}`).textContent = file.name;
+                document.getElementById(`mainFilePreview${sketchNumber}`).classList.remove('hidden');
+                document.getElementById(`mainFileUploadArea${sketchNumber}`).classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 메인화면 파일 제거
+    removeMainFile(sketchNumber) {
+        document.getElementById(`mainSketchFile${sketchNumber}`).value = '';
+        document.getElementById(`mainFilePreview${sketchNumber}`).classList.add('hidden');
+        document.getElementById(`mainFileUploadArea${sketchNumber}`).classList.remove('hidden');
+    }
+
+    // 메인화면 실시결과 데이터 가져오기
+    getMainResultData() {
+        return {
+            mainContent: document.getElementById('mainResultContent').value.trim(),
+            futurePlan: document.getElementById('mainResultFuturePlan').value.trim(),
+            sketches: this.getMainSketchData()
+        };
+    }
+
+    // 메인화면 스케치 데이터 가져오기
+    getMainSketchData() {
+        const sketches = [];
+        
+        // 스케치 1
+        const title1 = document.getElementById('mainSketchTitle1').value.trim();
+        const file1 = document.getElementById('mainSketchFile1').files[0];
+        if (title1 && file1) {
+            sketches.push({
+                title: title1,
+                file: file1
+            });
+        }
+        
+        // 스케치 2
+        const title2 = document.getElementById('mainSketchTitle2').value.trim();
+        const file2 = document.getElementById('mainSketchFile2').files[0];
+        if (title2 && file2) {
+            sketches.push({
+                title: title2,
+                file: file2
+            });
+        }
+        
+        return sketches;
     }
 
     // 실시결과 PDF용 HTML 콘텐츠 생성
