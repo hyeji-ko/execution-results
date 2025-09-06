@@ -134,7 +134,7 @@ class SeminarPlanningApp {
         
         // 실시결과 모달 관련 이벤트들
         document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
-        document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModal());
+        document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModalAndReturnToMain());
         document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
         
         // 스케치 1 이벤트
@@ -3580,6 +3580,21 @@ class SeminarPlanningApp {
         this.resetResultForm();
     }
 
+    // 실시결과 모달 닫기 및 메인화면으로 전환
+    closeResultModalAndReturnToMain() {
+        document.getElementById('resultModal').classList.add('hidden');
+        this.resetResultForm();
+        
+        // 메인화면으로 스크롤 (페이지 상단으로)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // 메인화면의 기본 정보 섹션에 포커스
+        const mainSection = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8');
+        if (mainSection) {
+            mainSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
     // 기존 실시결과 조회
     async loadExistingResult(session, datetime) {
         try {
@@ -3731,60 +3746,88 @@ class SeminarPlanningApp {
                 return;
             }
             
-            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
+            // 기존 실시결과 데이터 조회 (기존 스케치 데이터 보존을 위해)
+            const existingResults = await loadResultData();
+            let existingResult = null;
+            if (existingResults && existingResults.length > 0) {
+                existingResult = existingResults.find(result => 
+                    result.session === session && result.datetime === datetime
+                );
+            }
+            
+            // 기존 데이터가 있는지 확인
+            const hasExistingData = existingResult && (
+                existingResult.mainContent || 
+                existingResult.futurePlan || 
+                (existingResult.sketches && existingResult.sketches.length > 0)
+            );
+            
+            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2 && !hasExistingData) {
                 this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
                 return;
             }
             
             this.showLoading(true);
             
-            // 스케치 1 처리
-            let sketch1Data = null;
-            if (sketchFile1) {
-                const uploadResult = await uploadImage(sketchFile1, '');
-                if (uploadResult.success) {
-                    sketch1Data = {
-                        title: sketchTitle1,
-                        imageData: uploadResult.url,
-                        fileName: sketchFile1.name
-                    };
-                } else {
-                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
-                    return;
-                }
-            }
-            
-            // 스케치 2 처리
-            let sketch2Data = null;
-            if (sketchFile2) {
-                const uploadResult = await uploadImage(sketchFile2, '');
-                if (uploadResult.success) {
-                    sketch2Data = {
-                        title: sketchTitle2,
-                        imageData: uploadResult.url,
-                        fileName: sketchFile2.name
-                    };
-                } else {
-                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
-                    return;
-                }
-            }
-            
-            // 실시결과 데이터 구성
+            // 실시결과 데이터 구성 (기존 스케치 데이터로 초기화)
             const resultData = {
                 session: session,
                 datetime: datetime,
                 mainContent: mainContent,
                 futurePlan: futurePlan,
-                sketches: []
+                sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
             };
             
-            // 스케치 데이터 추가
-            if (sketch1Data) {
-                resultData.sketches.push(sketch1Data);
+            // 스케치 1 처리
+            if (sketchFile1) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile1, '');
+                if (uploadResult.success) {
+                    const sketch1Data = {
+                        title: sketchTitle1,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile1.name
+                    };
+                    // 기존 스케치 1이 있으면 교체, 없으면 추가
+                    if (resultData.sketches.length > 0) {
+                        resultData.sketches[0] = sketch1Data;
+                    } else {
+                        resultData.sketches.push(sketch1Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
+                    return;
+                }
+            } else if (sketchTitle1 && resultData.sketches.length > 0) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 1의 제목만 업데이트)
+                resultData.sketches[0].title = sketchTitle1;
             }
-            if (sketch2Data) {
-                resultData.sketches.push(sketch2Data);
+            
+            // 스케치 2 처리
+            if (sketchFile2) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile2, '');
+                if (uploadResult.success) {
+                    const sketch2Data = {
+                        title: sketchTitle2,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile2.name
+                    };
+                    // 기존 스케치 2가 있으면 교체, 없으면 추가
+                    if (resultData.sketches.length > 1) {
+                        resultData.sketches[1] = sketch2Data;
+                    } else if (resultData.sketches.length === 1) {
+                        resultData.sketches.push(sketch2Data);
+                    } else {
+                        resultData.sketches.push(sketch2Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
+                    return;
+                }
+            } else if (sketchTitle2 && resultData.sketches.length > 1) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 2의 제목만 업데이트)
+                resultData.sketches[1].title = sketchTitle2;
             }
             
             // 데이터 저장
