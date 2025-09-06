@@ -4450,9 +4450,6 @@ class SeminarPlanningApp {
                 <div style="page-break-before: always;">
                     <h2>[별첨 2] 세미나 스케치</h2>
                     <div style="margin: 20px 0;">
-                        <p style="font-size: 12px; margin-bottom: 15px;">
-                            <strong>첨부 1.</strong> 세미나 스케치 자료
-                        </p>
                         ${resultData.sketches.map((sketch, index) => {
                             if (sketch.title && sketch.imageData) {
                                 return `
@@ -4477,7 +4474,7 @@ class SeminarPlanningApp {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>${session} 전사 신기술 세미나 실시 결과</title>
+                <title> </title>
                 <style>
                     body {
                         font-family: 'Malgun Gothic', Arial, sans-serif;
@@ -4528,8 +4525,8 @@ class SeminarPlanningApp {
                 
                 <div class="overview">
                     <h2>1. 개요</h2>
-                    <div class="overview-item">□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</div>
-                    <div class="overview-item">□ 참석 인력: ${safeText(attendeeTarget)}</div>
+                    <div class="overview-item">&nbsp;&nbsp;□ 일시/장소: ${safeText(datetime)} / ${safeText(location)}</div>
+                    <div class="overview-item">&nbsp;&nbsp;□ 참석 인력: ${safeText(attendeeTarget)}</div>
                 </div>
                 
                 <div class="content">
