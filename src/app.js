@@ -118,7 +118,7 @@ class SeminarPlanningApp {
 
     bindEvents() {
         // 초기화 버튼
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetForm());
+        document.getElementById('initBtn').addEventListener('click', () => this.resetForm());
         
         // 저장 버튼
         document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
@@ -126,20 +126,21 @@ class SeminarPlanningApp {
         // 삭제 버튼
         document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
         
-        // 일괄삭제 버튼
-        //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
-        
         // 조회 버튼
         document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
         
         // 시간 계획 행 추가
-        document.getElementById('addTimeRow').addEventListener('click', () => this.addTimeRow());
+        document.getElementById('addTimeRowBtn').addEventListener('click', () => this.addTimeRow());
         
         // 참석자 행 추가
-        document.getElementById('addAttendeeRow').addEventListener('click', () => this.addAttendeeRow());
+        document.getElementById('addAttendeeRowBtn').addEventListener('click', () => this.addAttendeeRow());
         
         // 내보내기 버튼들
-        document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
+        document.getElementById('exportPdfBtn').addEventListener('click', () => this.exportToPDF());
+        
+        // 모달 관련 버튼들
+        document.getElementById('closeModalBtn').addEventListener('click', () => this.closeModal());
+        document.getElementById('newPlanBtn').addEventListener('click', () => this.newPlan());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -1345,7 +1346,7 @@ class SeminarPlanningApp {
 
     // 조회 모달 표시
     showSearchModal() {
-        const modal = document.getElementById('searchModal');
+        const modal = document.getElementById('planModal');
         modal.classList.remove('hidden');
         
         // 메인 화면 스크롤 방지
@@ -1359,25 +1360,24 @@ class SeminarPlanningApp {
     }
     
     // 조회 모달 닫기
-    closeSearchModal() {
-        const modal = document.getElementById('searchModal');
+    closeModal() {
+        const modal = document.getElementById('planModal');
         modal.classList.add('hidden');
         
         // 메인 화면 스크롤 복원
         document.body.style.overflow = '';
     }
+    
+    // 새 계획 등록
+    newPlan() {
+        this.closeModal();
+        this.resetForm();
+    }
 
     // 조회 모달 이벤트 바인딩
     bindSearchModalEvents() {
-        // 모달 닫기
-        document.getElementById('closeSearchModal').addEventListener('click', () => {
-            this.closeSearchModal();
-        });
-
-        // 등록 버튼
-        document.getElementById('addNewBtn').addEventListener('click', () => {
-            this.addNewSeminar();
-        });
+        // 모달 닫기 (이미 bindEvents에서 처리됨)
+        // 등록 버튼 (이미 bindEvents에서 처리됨)
     }
 
 
