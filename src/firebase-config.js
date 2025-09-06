@@ -1,6 +1,7 @@
 // Firebase Configuration (ES6 모듈)
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
+
 // Firebase는 main.js에서 초기화되므로 여기서는 import만 사용
 
 // 데이터 저장 함수
