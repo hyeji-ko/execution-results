@@ -394,8 +394,7 @@ class SeminarPlanningApp {
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                             data-index="0" data-field="attendance">
-                        <option value="">선택</option>
-                        <option value="Y">Y</option>
+                        <option value="Y" selected>Y</option>
                         <option value="N">N</option>
                     </select>
                 </td>
@@ -415,7 +414,8 @@ class SeminarPlanningApp {
                 name: '',
                 position: '',
                 department: '',
-                work: ''
+                work: '',
+                attendance: 'Y'  // 기본값 Y로 설정
             };
         }
     }
@@ -542,8 +542,7 @@ class SeminarPlanningApp {
             <td class="px-4 py-3 border-b">
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                         data-field="attendance">
-                    <option value="">선택</option>
-                    <option value="Y">Y</option>
+                    <option value="Y" selected>Y</option>
                     <option value="N">N</option>
                 </select>
             </td>
@@ -580,7 +579,8 @@ class SeminarPlanningApp {
             name: '',
             position: '',
             department: '',
-            work: ''
+            work: '',
+            attendance: 'Y'  // 기본값 Y로 설정
         };
     }
 
@@ -918,9 +918,8 @@ class SeminarPlanningApp {
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                             data-field="attendance"
                             onchange="app.updateAttendeeList(${index}, 'attendance', this.value)">
-                        <option value="">선택</option>
-                        <option value="Y">Y</option>
-                        <option value="N">N</option>
+                        <option value="Y" ${(item.attendance === 'Y' || !item.attendance) ? 'selected' : ''}>Y</option>
+                        <option value="N" ${item.attendance === 'N' ? 'selected' : ''}>N</option>
                     </select>
                 </td>
                 <td class="px-4 py-3 border-b">
@@ -4022,13 +4021,21 @@ class SeminarPlanningApp {
             }
             
             if (mainContentEl) {
-                mainContentEl.value = resultData.mainContent || '';
-                console.log('✅ 주요 내용 설정:', resultData.mainContent);
+                if (resultData.mainContent) {
+                    mainContentEl.value = resultData.mainContent;
+                    console.log('✅ 주요 내용 설정 (실시결과 데이터):', resultData.mainContent);
+                } else {
+                    console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 현재 폼 값 유지:', mainContentEl.value);
+                }
             }
             
             if (futurePlanEl) {
-                futurePlanEl.value = resultData.futurePlan || '';
-                console.log('✅ 향후 계획 설정:', resultData.futurePlan);
+                if (resultData.futurePlan) {
+                    futurePlanEl.value = resultData.futurePlan;
+                    console.log('✅ 향후 계획 설정 (실시결과 데이터):', resultData.futurePlan);
+                } else {
+                    console.log('ℹ️ 실시결과 데이터에 향후 계획이 없음, 현재 폼 값 유지:', futurePlanEl.value);
+                }
             }
             
             // 스케치 데이터 처리
@@ -4101,9 +4108,8 @@ class SeminarPlanningApp {
 
     // 메인화면 실시결과 폼 초기화
     clearMainResultForm() {
-        // 목표는 기본 정보이므로 클리어하지 않음
-        document.getElementById('mainResultContent').value = '';
-        document.getElementById('mainResultFuturePlan').value = '';
+        // 목표, 주요 내용, 향후 계획은 기본 정보이므로 클리어하지 않음
+        // 스케치만 초기화
         this.clearMainSketchFields();
     }
 
