@@ -134,7 +134,6 @@ class SeminarPlanningApp {
         
         // 실시결과 모달 관련 이벤트들
         document.getElementById('closeResultModal').addEventListener('click', () => this.closeResultModal());
-        document.getElementById('cancelResultBtn').addEventListener('click', () => this.closeResultModalAndReturnToMain());
         document.getElementById('saveResultBtn').addEventListener('click', () => this.saveResultData());
         
         // 스케치 1 이벤트
@@ -3578,21 +3577,6 @@ class SeminarPlanningApp {
     closeResultModal() {
         document.getElementById('resultModal').classList.add('hidden');
         this.resetResultForm();
-    }
-
-    // 실시결과 모달 닫기 및 메인화면으로 전환
-    closeResultModalAndReturnToMain() {
-        document.getElementById('resultModal').classList.add('hidden');
-        this.resetResultForm();
-        
-        // 메인화면으로 스크롤 (페이지 상단으로)
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // 메인화면의 기본 정보 섹션에 포커스
-        const mainSection = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8');
-        if (mainSection) {
-            mainSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
     }
 
     // 기존 실시결과 조회
