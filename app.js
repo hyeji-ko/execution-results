@@ -632,6 +632,7 @@ class SeminarPlanningApp {
     updateAttendeeList(index, field, value) {
         if (this.currentData.attendeeList[index]) {
             this.currentData.attendeeList[index][field] = value;
+            console.log(`참석자 데이터 업데이트: index=${index}, field=${field}, value=${value}`);
             
             // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
             if (field === 'department') {
@@ -1048,11 +1049,32 @@ class SeminarPlanningApp {
             }
             
             // 참석여부 필드 처리
-            if (item.attendance) {
-                const attendanceSelect = row.querySelector('select[data-field="attendance"]');
-                if (attendanceSelect) {
-                    attendanceSelect.value = item.attendance;
+            const attendanceSelect = row.querySelector('select[data-field="attendance"]');
+            if (attendanceSelect) {
+                // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'Y'로 설정
+                const attendanceValue = item.attendance || 'Y';
+                
+                // 모든 옵션의 selected 속성 제거
+                const options = attendanceSelect.querySelectorAll('option');
+                options.forEach(option => {
+                    option.removeAttribute('selected');
+                });
+                
+                // 해당 값의 옵션에 selected 속성 추가
+                const targetOption = attendanceSelect.querySelector(`option[value="${attendanceValue}"]`);
+                if (targetOption) {
+                    targetOption.setAttribute('selected', 'selected');
                 }
+                
+                // value 속성도 설정
+                attendanceSelect.value = attendanceValue;
+                
+                console.log(`참석여부 설정: index=${index}, value=${attendanceValue}, item.attendance=${item.attendance}`);
+                
+                // 참석여부 값이 제대로 설정되었는지 확인
+                setTimeout(() => {
+                    console.log(`참석여부 확인: index=${index}, 실제값=${attendanceSelect.value}, 예상값=${attendanceValue}`);
+                }, 100);
             }
             
             // 이벤트 리스너 추가 (모바일 환경 고려)
