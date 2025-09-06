@@ -1054,15 +1054,44 @@ class SeminarPlanningApp {
                 item.attendance = 'Y';
                 migrated = true;
                 console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='Y' 추가`);
+            } else {
+                console.log(`참석자 데이터 유지: index=${index}, name=${item.name}, attendance='${item.attendance}'`);
             }
         });
         
         if (migrated) {
             console.log('참석자 데이터 마이그레이션 완료 - attendance 필드가 추가되었습니다.');
-            // 마이그레이션된 데이터를 즉시 저장하지 않음 (데이터 로딩 중이므로)
-            console.log('마이그레이션 완료 - 저장은 나중에 수행');
+            // 마이그레이션된 데이터를 즉시 Firebase에 저장
+            this.saveMigratedData();
         } else {
             console.log('마이그레이션이 필요하지 않습니다.');
+        }
+    }
+
+    // 마이그레이션된 데이터를 Firebase에 저장
+    async saveMigratedData() {
+        try {
+            if (!this.currentDocumentId) {
+                console.log('문서 ID가 없어서 마이그레이션 데이터를 저장할 수 없습니다.');
+                return;
+            }
+
+            console.log('마이그레이션된 데이터를 Firebase에 저장 중...');
+            
+            if (typeof window.updateData !== 'function') {
+                console.warn('updateData 함수가 정의되지 않았습니다.');
+                return;
+            }
+
+            const result = await window.updateData(this.currentDocumentId, this.currentData);
+            
+            if (result.success) {
+                console.log('마이그레이션 데이터 저장 완료:', result);
+            } else {
+                console.error('마이그레이션 데이터 저장 실패:', result);
+            }
+        } catch (error) {
+            console.error('마이그레이션 데이터 저장 중 오류:', error);
         }
     }
 
