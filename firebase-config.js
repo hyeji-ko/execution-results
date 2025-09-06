@@ -1,6 +1,9 @@
 // Firebase Configuration
 // 실제 프로젝트에서는 Firebase 콘솔에서 가져온 설정을 사용해야 합니다.
 
+// Firebase를 기본 저장소로 사용
+const useLocalStorage = false; // Firebase 사용
+
 const firebaseConfig = {
     apiKey: "AIzaSyDorTHDMuGf-Ghinx3-vYD-NVz_nXk-J6I",
     authDomain: "plan-execution.firebaseapp.com",
@@ -21,9 +24,6 @@ const storage = firebase.storage();
 
 // Firebase 설정 상태 확인
 console.log('Firebase initialized successfully');
-
-// Firebase를 기본 저장소로 사용
-const useLocalStorage = false; // Firebase 사용
 
 // Firebase Storage 함수들
 async function uploadImage(file, path) {
