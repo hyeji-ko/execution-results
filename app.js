@@ -830,25 +830,32 @@ class SeminarPlanningApp {
         console.log('시간 계획 데이터 타입:', typeof this.currentData.timeSchedule);
         console.log('시간 계획 데이터 길이:', this.currentData.timeSchedule ? this.currentData.timeSchedule.length : 'undefined');
         console.log('시간 계획 데이터가 배열인가?', Array.isArray(this.currentData.timeSchedule));
+        console.log('시간 계획 데이터 키들:', this.currentData.timeSchedule ? Object.keys(this.currentData.timeSchedule) : 'undefined');
         
         if (!this.currentData.timeSchedule) {
             console.error('시간 계획 데이터가 undefined입니다.');
             return;
         }
         
+        // timeSchedule이 객체인 경우 배열로 변환
+        let timeScheduleArray = this.currentData.timeSchedule;
         if (!Array.isArray(this.currentData.timeSchedule)) {
-            console.error('시간 계획 데이터가 배열이 아닙니다:', this.currentData.timeSchedule);
-            return;
+            console.log('시간 계획 데이터가 배열이 아닙니다. 객체를 배열로 변환합니다.');
+            // 객체인 경우 값들을 배열로 변환
+            timeScheduleArray = Object.values(this.currentData.timeSchedule);
+            console.log('변환된 시간 계획 데이터:', timeScheduleArray);
+            // 변환된 배열을 currentData에 저장
+            this.currentData.timeSchedule = timeScheduleArray;
         }
         
-        if (this.currentData.timeSchedule.length === 0) {
+        if (timeScheduleArray.length === 0) {
             console.log('시간 계획 데이터가 비어있습니다.');
             return;
         }
         
         console.log('시간 계획 테이블 렌더링 시작...');
         
-        this.currentData.timeSchedule.forEach((item, index) => {
+        timeScheduleArray.forEach((item, index) => {
             console.log(`시간 계획 아이템 처리 중: index=${index}, item=`, item);
             
             // 직접 행 생성 (addTimeRow() 호출하지 않음)
@@ -992,7 +999,7 @@ class SeminarPlanningApp {
         }
         
         if (!Array.isArray(this.currentData.attendeeList)) {
-            console.log('attendeeList가 배열이 아닙니다.');
+            console.log('attendeeList가 배열이 아닙니다. 마이그레이션을 건너뜁니다.');
             return;
         }
         
@@ -1025,25 +1032,32 @@ class SeminarPlanningApp {
         console.log('참석자 데이터 타입:', typeof this.currentData.attendeeList);
         console.log('참석자 데이터 길이:', this.currentData.attendeeList ? this.currentData.attendeeList.length : 'undefined');
         console.log('참석자 데이터가 배열인가?', Array.isArray(this.currentData.attendeeList));
+        console.log('참석자 데이터 키들:', this.currentData.attendeeList ? Object.keys(this.currentData.attendeeList) : 'undefined');
         
         if (!this.currentData.attendeeList) {
             console.error('참석자 데이터가 undefined입니다.');
             return;
         }
         
+        // attendeeList가 객체인 경우 배열로 변환
+        let attendeeListArray = this.currentData.attendeeList;
         if (!Array.isArray(this.currentData.attendeeList)) {
-            console.error('참석자 데이터가 배열이 아닙니다:', this.currentData.attendeeList);
-            return;
+            console.log('참석자 데이터가 배열이 아닙니다. 객체를 배열로 변환합니다.');
+            // 객체인 경우 값들을 배열로 변환
+            attendeeListArray = Object.values(this.currentData.attendeeList);
+            console.log('변환된 참석자 데이터:', attendeeListArray);
+            // 변환된 배열을 currentData에 저장
+            this.currentData.attendeeList = attendeeListArray;
         }
         
-        if (this.currentData.attendeeList.length === 0) {
+        if (attendeeListArray.length === 0) {
             console.log('참석자 데이터가 비어있습니다.');
             return;
         }
         
         console.log('참석자 테이블 렌더링 시작...');
         
-        this.currentData.attendeeList.forEach((item, index) => {
+        attendeeListArray.forEach((item, index) => {
             console.log(`참석자 아이템 처리 중: index=${index}, item=`, item);
             
             // 직접 행 생성 (addAttendeeRow() 호출하지 않음)
