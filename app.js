@@ -239,7 +239,7 @@ class SeminarPlanningApp {
             if (result.success) {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
-                this.populateForm();
+                await this.populateForm();
                 console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
                 console.log('저장된 데이터가 없습니다:', result.message);
@@ -249,12 +249,15 @@ class SeminarPlanningApp {
         }
     }
 
-    populateForm() {
-        // 기본 정보 채우기
+    async populateForm() {
+        // 기본 정보 채우기 (목표 제외)
         Object.keys(this.currentData).forEach(key => {
             if (key === 'session') {
                 // 회차 필드 특별 처리
                 this.populateSessionField();
+            } else if (key === 'objective') {
+                // 목표는 실시결과 데이터에서 처리하므로 여기서는 제외
+                return;
             } else {
                 const element = document.getElementById(key);
                 if (element && typeof this.currentData[key] === 'string') {
@@ -268,6 +271,9 @@ class SeminarPlanningApp {
         
         // 참석자 테이블 채우기
         this.populateAttendeeTable();
+        
+        // 실시결과 데이터도 함께 로드 (목표 포함)
+        await this.loadMainResultData();
     }
 
     addDefaultRows() {
@@ -1191,10 +1197,7 @@ class SeminarPlanningApp {
             if (result.success) {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
-                this.populateForm();
-                
-                // 메인화면 실시결과 데이터도 함께 로드
-                await this.loadMainResultData();
+                await this.populateForm();
                 
                 this.showSuccessToast('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
@@ -1605,7 +1608,7 @@ class SeminarPlanningApp {
                 this.currentDocumentId = existingData.id; // 찾은 데이터의 ID 사용
                 console.log('📋 currentData 설정 완료:', this.currentData);
                 
-                this.populateForm();
+                await this.populateForm();
                 console.log('📋 폼 채우기 완료');
                 
                 this.showSuccessToast(`${session} 세미나 계획을 불러왔습니다.`);
@@ -1666,7 +1669,7 @@ class SeminarPlanningApp {
                 this.currentDocumentId = id; // 매개변수로 받은 id 사용
                 console.log('📋 currentData 설정 완료:', this.currentData);
                 
-                this.populateForm();
+                await this.populateForm();
                 console.log('📋 폼 채우기 완료');
                 
                 this.showSuccessToast('세미나 계획을 불러왔습니다.');
@@ -1794,7 +1797,11 @@ class SeminarPlanningApp {
         const inputElement = document.getElementById('sessionInput');
         
         if (this.currentData.session) {
-            const sessionOptions = ['제1회', '제2회', '제3회', '제4회', '제5회', '제6회', '제7회', '제8회', '제9회', '제10회'];
+            // HTML에서 정의된 모든 회차 옵션들
+            const sessionOptions = [
+                '제 1회', '제 2회', '제 3회', '제 4회', '제 5회', '제 6회', '제 7회', '제 8회', '제 9회', '제10회',
+                '제11회', '제12회', '제13회', '제14회', '제15회', '제16회', '제17회', '제18회', '제19회', '제20회'
+            ];
             
             if (sessionOptions.includes(this.currentData.session)) {
                 // 미리 정의된 옵션인 경우
@@ -3544,10 +3551,7 @@ class SeminarPlanningApp {
         this.currentDocumentId = null; // 새 데이터이므로 ID 초기화
         
         // 폼 필드 업데이트
-        this.populateForm();
-        
-        // 메인화면 실시결과 데이터도 함께 로드
-        await this.loadMainResultData();
+        await this.populateForm();
     }
 
     // 일괄삭제 메서드 (모든 데이터 삭제)
@@ -3708,6 +3712,7 @@ class SeminarPlanningApp {
                 resultData = {
                     session: session,
                     datetime: datetime,
+                    objective: mainResultData.objective || '목표가 등록되지 않았습니다.',
                     mainContent: mainResultData.mainContent || '실시결과가 등록되지 않았습니다.',
                     futurePlan: mainResultData.futurePlan || '향후 계획이 등록되지 않았습니다.',
                     sketches: mainResultData.sketches.map(sketch => ({
@@ -3802,9 +3807,21 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 20]
                     },
                     
-                    // 2. 주요 내용
+                    // 2. 목표
                     {
-                        text: '2. 주요 내용',
+                        text: '2. 목표',
+                        fontSize: 14,
+                        bold: true,
+                        margin: [0, 0, 0, 10]
+                    },
+                    {
+                        text: resultData.objective || '미입력',
+                        margin: [0, 0, 0, 20]
+                    },
+                    
+                    // 3. 주요 내용
+                    {
+                        text: '3. 주요 내용',
                         fontSize: 14,
                         bold: true,
                         margin: [0, 0, 0, 10]
@@ -3814,9 +3831,9 @@ class SeminarPlanningApp {
                         margin: [0, 0, 0, 20]
                     },
                     
-                    // 3. 향후 계획
+                    // 4. 향후 계획
                     {
-                        text: '3. 향후 계획',
+                        text: '4. 향후 계획',
                         fontSize: 14,
                         bold: true,
                         margin: [0, 0, 0, 10]
@@ -3996,6 +4013,7 @@ class SeminarPlanningApp {
     // 메인화면 실시결과 데이터 가져오기
     getMainResultData() {
         return {
+            objective: document.getElementById('objective').value.trim(),
             mainContent: document.getElementById('mainResultContent').value.trim(),
             futurePlan: document.getElementById('mainResultFuturePlan').value.trim(),
             sketches: this.getMainSketchData()
@@ -4066,9 +4084,15 @@ class SeminarPlanningApp {
         console.log('📝 메인화면 폼에 데이터 채우기:', resultData);
         
         try {
-            // 주요 내용과 향후 계획 채우기
+            // 목표, 주요 내용, 향후 계획 채우기
+            const objectiveEl = document.getElementById('objective');
             const mainContentEl = document.getElementById('mainResultContent');
             const futurePlanEl = document.getElementById('mainResultFuturePlan');
+            
+            if (objectiveEl) {
+                objectiveEl.value = resultData.objective || '';
+                console.log('✅ 목표 설정:', resultData.objective);
+            }
             
             if (mainContentEl) {
                 mainContentEl.value = resultData.mainContent || '';
@@ -4150,6 +4174,7 @@ class SeminarPlanningApp {
 
     // 메인화면 실시결과 폼 초기화
     clearMainResultForm() {
+        document.getElementById('objective').value = '';
         document.getElementById('mainResultContent').value = '';
         document.getElementById('mainResultFuturePlan').value = '';
         this.clearMainSketchFields();
@@ -4185,6 +4210,7 @@ class SeminarPlanningApp {
                 return;
             }
             
+            const objective = document.getElementById('objective').value.trim();
             const mainContent = document.getElementById('mainResultContent').value.trim();
             const futurePlan = document.getElementById('mainResultFuturePlan').value.trim();
             
@@ -4197,8 +4223,8 @@ class SeminarPlanningApp {
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
             // 유효성 검사
-            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
-                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
+            if (!objective && !mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
+                this.showErrorToast('목표, 주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
                 this.showLoading(false);
                 return;
             }
@@ -4210,6 +4236,7 @@ class SeminarPlanningApp {
             const resultData = {
                 session: session,
                 datetime: datetime,
+                objective: objective,
                 mainContent: mainContent,
                 futurePlan: futurePlan,
                 sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
@@ -4411,12 +4438,17 @@ class SeminarPlanningApp {
                 </div>
                 
                 <div class="content">
-                    <h2>2. 주요 내용</h2>
+                    <h2>2. 목표</h2>
+                    <div>${safeText(resultData.objective)}</div>
+                </div>
+                
+                <div class="content">
+                    <h2>3. 주요 내용</h2>
                     <div>${safeText(resultData.mainContent)}</div>
                 </div>
                 
                 <div class="content">
-                    <h2>3. 향후 계획</h2>
+                    <h2>4. 향후 계획</h2>
                     <div>${safeText(resultData.futurePlan)}</div>
                 </div>
                 
