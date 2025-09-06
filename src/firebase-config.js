@@ -1,22 +1,7 @@
 // Firebase Configuration (ES6 모듈)
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
-// Firebase 설정
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_API_KEY,
-    authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_APP_ID
-};
-
-// Firebase 초기화
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-console.log('Firebase 초기화 완료:', firebaseConfig);
+// Firebase는 main.js에서 초기화되므로 여기서는 import만 사용
 
 // 데이터 저장 함수
 export async function saveData(data) {
@@ -29,7 +14,7 @@ export async function saveData(data) {
             // Firebase 사용
             const dataToSave = Array.isArray(data) ? data[0] : data;
             
-            const docRef = await addDoc(collection(db, 'seminarPlans'), {
+            const docRef = await addDoc(collection(window.db, 'seminarPlans'), {
                 ...dataToSave,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
@@ -55,7 +40,7 @@ export async function loadData() {
             return { success: true, data: null, id: null, message: '로컬 스토리지에 저장된 데이터가 없습니다.' };
         } else {
             // Firebase에서 데이터 불러오기
-            const snapshot = await getDocs(collection(db, 'seminarPlans'));
+            const snapshot = await getDocs(collection(window.db, 'seminarPlans'));
             
             if (!snapshot.empty) {
                 const plans = [];
@@ -106,7 +91,7 @@ export async function updateData(id, data) {
             return { success: false, message: '로컬 스토리지에서 해당 ID를 찾을 수 없습니다.' };
         } else {
             // Firebase에서 데이터 업데이트
-            await updateDoc(doc(db, 'seminarPlans', id), {
+            await updateDoc(doc(window.db, 'seminarPlans', id), {
                 ...data,
                 updatedAt: serverTimestamp()
             });
@@ -129,7 +114,7 @@ export async function deleteData(id) {
             return { success: true, message: '로컬 스토리지 데이터가 삭제되었습니다.' };
         } else {
             // Firebase에서 데이터 삭제
-            await deleteDoc(doc(db, 'seminarPlans', id));
+            await deleteDoc(doc(window.db, 'seminarPlans', id));
             return { success: true, message: 'Firebase 데이터가 삭제되었습니다.' };
         }
     } catch (error) {
@@ -150,7 +135,7 @@ export async function loadAllPlans() {
             return { success: true, data: [], message: '로컬 스토리지에 저장된 계획이 없습니다.' };
         } else {
             // Firebase에서 모든 세미나 계획 불러오기
-            const snapshot = await getDocs(collection(db, 'seminarPlans'));
+            const snapshot = await getDocs(collection(window.db, 'seminarPlans'));
             
             const plans = [];
             snapshot.forEach(doc => {
