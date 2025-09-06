@@ -15,7 +15,9 @@ class SeminarPlanningApp {
         this.currentDocumentId = null; // Firebase 문서 ID 저장
         
         // 라이브러리 로딩 상태 확인 및 초기화
-        this.initializeApp();
+        this.initializeApp().catch(error => {
+            console.error('앱 초기화 오류:', error);
+        });
     }
     
     async initializeApp() {
@@ -262,8 +264,14 @@ class SeminarPlanningApp {
 
     async loadInitialData() {
         try {
+            // loadData 함수가 정의되어 있는지 확인
+            if (typeof window.loadData !== 'function') {
+                console.warn('loadData 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
+                return;
+            }
+            
             // Firebase에서 저장된 데이터 불러오기
-            const result = await loadData();
+            const result = await window.loadData();
             if (result.success) {
                 this.currentData = result.data;
                 this.currentDocumentId = result.id; // Firebase 문서 ID 저장
@@ -1062,6 +1070,12 @@ class SeminarPlanningApp {
 
     async saveData() {
         try {
+            // 필요한 함수들이 정의되어 있는지 확인
+            if (typeof window.saveData !== 'function' || typeof window.updateData !== 'function') {
+                this.showErrorToast('필요한 함수들이 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
+                return;
+            }
+            
             this.showLoading(true);
             
             // 현재 폼 데이터 수집
@@ -1088,7 +1102,7 @@ class SeminarPlanningApp {
                 if (useLocalStorage) {
                     result = this.saveToLocalStorage(this.currentData, existingData.id);
                 } else {
-                    result = await updateData(existingData.id, this.currentData);
+                    result = await window.updateData(existingData.id, this.currentData);
                 }
                 
                 if (result.success) {
@@ -1102,7 +1116,7 @@ class SeminarPlanningApp {
                 if (useLocalStorage) {
                     result = this.saveToLocalStorage(this.currentData);
                 } else {
-                    result = await saveData(this.currentData);
+                    result = await window.saveData(this.currentData);
                 }
                 
                 if (result.success && result.id) {
@@ -1223,7 +1237,7 @@ class SeminarPlanningApp {
         try {
             this.showLoading(true);
             
-            const result = await loadData();
+            const result = await window.loadData();
             
             if (result.success) {
                 this.currentData = result.data;
@@ -3025,7 +3039,7 @@ class SeminarPlanningApp {
                         if (useLocalStorage) {
                             this.saveToLocalStorage(singleSeminar, existingData.id);
                         } else {
-                            await updateData(existingData.id, singleSeminar);
+                            await window.updateData(existingData.id, singleSeminar);
                         }
                         this.showSuccessToast('기존 세미나 데이터가 수정되었습니다.');
                     } else {
@@ -3034,7 +3048,7 @@ class SeminarPlanningApp {
                         if (useLocalStorage) {
                             this.saveToLocalStorage(singleSeminar);
                         } else {
-                            await saveData(singleSeminar);
+                            await window.saveData(singleSeminar);
                         }
                         this.showSuccessToast('새로운 세미나 데이터가 등록되었습니다.');
                     }
@@ -3066,7 +3080,7 @@ class SeminarPlanningApp {
                             if (useLocalStorage) {
                                 this.saveToLocalStorage(seminar, existingData.id);
                             } else {
-                                await updateData(existingData.id, seminar);
+                                await window.updateData(existingData.id, seminar);
                             }
                             this.showSuccessToast('기존 세미나 데이터가 수정되었습니다.');
                         } else {
@@ -3075,7 +3089,7 @@ class SeminarPlanningApp {
                             if (useLocalStorage) {
                                 this.saveToLocalStorage(seminar);
                             } else {
-                                await saveData(seminar);
+                                await window.saveData(seminar);
                             }
                             this.showSuccessToast('새로운 세미나 데이터가 등록되었습니다.');
                         }
@@ -3465,14 +3479,14 @@ class SeminarPlanningApp {
                         if (useLocalStorage) {
                             result = this.saveToLocalStorage(seminar, existingData.id);
                         } else {
-                            result = await updateData(existingData.id, seminar);
+                            result = await window.updateData(existingData.id, seminar);
                         }
                     } else {
                         // 기존 데이터가 없으면 새로 등록
                         if (useLocalStorage) {
                             result = this.saveToLocalStorage(seminar);
                         } else {
-                            result = await saveData(seminar);
+                            result = await window.saveData(seminar);
                         }
                     }
                     
@@ -3576,7 +3590,7 @@ class SeminarPlanningApp {
 
             // Firebase에서 데이터 삭제
             if (this.currentDocumentId) {
-                const result = await deleteData(this.currentDocumentId);
+                const result = await window.deleteData(this.currentDocumentId);
                 if (result.success) {
                     this.showSuccessToast('데이터가 성공적으로 삭제되었습니다.');
                     
@@ -4443,7 +4457,7 @@ let app;
 document.addEventListener('DOMContentLoaded', async function() {
     app = new SeminarPlanningApp();
     // app.initializeApp()은 constructor에서 자동으로 호출됩니다
+    
+    // 전역 함수로 노출 (HTML에서 호출하기 위해)
+    window.app = app;
 });
-
-// 전역 함수로 노출 (HTML에서 호출하기 위해)
-window.app = app;
