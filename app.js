@@ -327,11 +327,8 @@ class SeminarPlanningApp {
             return;
         }
         
-        // 데이터 구조 정규화 먼저 실행
+        // 데이터 구조 정규화만 실행 (마이그레이션 제거)
         this.normalizeDataStructure();
-        
-        // 참석자 데이터 마이그레이션 실행
-        this.migrateAttendeeData();
         
         // 기본 정보 채우기 (목표 포함)
         console.log('기본 정보 채우기 시작...');
@@ -529,7 +526,7 @@ class SeminarPlanningApp {
                 position: '',
                 department: '',
                 work: '',
-                attendance: 'Y'  // 기본값 Y로 설정
+                attendance: 'N'  // 기본값 N으로 설정
             };
         }
     }
@@ -694,7 +691,7 @@ class SeminarPlanningApp {
             position: '',
             department: '',
             work: '',
-            attendance: 'Y'  // 기본값 Y로 설정
+            attendance: 'N'  // 기본값 N으로 설정
         };
     }
 
@@ -1045,93 +1042,11 @@ class SeminarPlanningApp {
         });
     }
 
-    // 참석자 데이터 마이그레이션 (기존 데이터 호환성)
-    migrateAttendeeData() {
-        console.log('migrateAttendeeData 시작');
-        console.log('currentData.attendeeList:', this.currentData.attendeeList);
-        
-        // 이미 마이그레이션이 완료된 경우 건너뛰기
-        if (this.currentData.migrationCompleted) {
-            console.log('이미 마이그레이션이 완료되었습니다. 건너뜁니다.');
-            return;
-        }
-        
-        if (!this.currentData.attendeeList) {
-            console.log('attendeeList가 없습니다.');
-            return;
-        }
-        
-        if (!Array.isArray(this.currentData.attendeeList)) {
-            console.log('attendeeList가 배열이 아닙니다. 마이그레이션을 건너뜁니다.');
-            return;
-        }
-        
-        let migrated = false;
-        this.currentData.attendeeList.forEach((item, index) => {
-            console.log(`마이그레이션 체크: index=${index}, name=${item.name}, attendance='${item.attendance}', type=${typeof item.attendance}`);
-            
-            // attendance 필드가 없거나 유효하지 않은 경우에만 마이그레이션
-            if (item.attendance === undefined || item.attendance === null || item.attendance === '') {
-                // 기본값을 'N'으로 설정 (참석하지 않음)
-                item.attendance = 'N';
-                migrated = true;
-                console.log(`참석자 데이터 마이그레이션: index=${index}, name=${item.name}, attendance='N' 추가`);
-            } else {
-                console.log(`참석자 데이터 유지: index=${index}, name=${item.name}, attendance='${item.attendance}'`);
-            }
-        });
-        
-        if (migrated) {
-            console.log('참석자 데이터 마이그레이션 완료 - attendance 필드가 추가되었습니다.');
-            // 마이그레이션된 데이터를 즉시 Firebase에 저장
-            this.saveMigratedData();
-        } else {
-            console.log('마이그레이션이 필요하지 않습니다.');
-        }
-    }
-
-    // 마이그레이션된 데이터를 Firebase에 저장
-    async saveMigratedData() {
-        try {
-            if (!this.currentDocumentId) {
-                console.log('문서 ID가 없어서 마이그레이션 데이터를 저장할 수 없습니다.');
-                return;
-            }
-
-            console.log('마이그레이션된 데이터를 Firebase에 저장 중...');
-            
-            if (typeof window.updateData !== 'function') {
-                console.warn('updateData 함수가 정의되지 않았습니다.');
-                return;
-            }
-
-            // 마이그레이션 완료 플래그 추가
-            const dataToSave = {
-                ...this.currentData,
-                migrationCompleted: true,
-                migrationDate: new Date().toISOString()
-            };
-
-            const result = await window.updateData(this.currentDocumentId, dataToSave);
-            
-            if (result.success) {
-                console.log('마이그레이션 데이터 저장 완료:', result);
-                // 현재 데이터도 업데이트
-                this.currentData.migrationCompleted = true;
-                this.currentData.migrationDate = dataToSave.migrationDate;
-            } else {
-                console.error('마이그레이션 데이터 저장 실패:', result);
-            }
-        } catch (error) {
-            console.error('마이그레이션 데이터 저장 중 오류:', error);
-        }
-    }
 
     populateAttendeeTable() {
         const tbody = document.getElementById('attendeeTableBody');
         tbody.innerHTML = '';
         
-        // 마이그레이션은 populateForm에서 이미 실행됨
         
         console.log('참석자 데이터 전체:', this.currentData.attendeeList);
         console.log('참석자 데이터 타입:', typeof this.currentData.attendeeList);
@@ -1227,8 +1142,8 @@ class SeminarPlanningApp {
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                             data-field="attendance"
                             onchange="app.updateAttendeeList(${index}, 'attendance', this.value)">
-                        <option value="Y" ${(item.attendance === 'Y' || !item.attendance) ? 'selected' : ''}>Y</option>
-                        <option value="N" ${item.attendance === 'N' ? 'selected' : ''}>N</option>
+                        <option value="Y" ${item.attendance === 'Y' ? 'selected' : ''}>Y</option>
+                        <option value="N" ${(item.attendance === 'N' || !item.attendance) ? 'selected' : ''}>N</option>
                     </select>
                 </td>
                 <td class="px-4 py-3 border-b">
@@ -1327,9 +1242,8 @@ class SeminarPlanningApp {
             // 참석여부 필드 처리
             const attendanceSelect = row.querySelector('select[data-field="attendance"]');
             if (attendanceSelect) {
-                // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'Y'로 설정
-                // 기존 데이터와의 호환성을 위해 attendance 필드가 없는 경우 'Y'로 처리
-                const attendanceValue = (item.attendance !== undefined && item.attendance !== null) ? item.attendance : 'Y';
+                // 참석여부 값이 있으면 해당 값으로 설정, 없으면 기본값 'N'으로 설정
+                const attendanceValue = (item.attendance !== undefined && item.attendance !== null && item.attendance !== '') ? item.attendance : 'N';
                 console.log(`참석여부 값 설정: index=${index}, attendanceValue=${attendanceValue}, item.attendance=${item.attendance}`);
                 
                 // 강제로 value 설정
@@ -1708,7 +1622,7 @@ class SeminarPlanningApp {
             }
             
             // 참석여부 데이터 수집
-            const attendance = attendanceSelect?.value || 'Y';
+            const attendance = attendanceSelect?.value || 'N';
             
             console.log(`참석자 데이터 수집: index=${index}, name=${nameInput?.value}, attendance=${attendance}`);
             
@@ -4438,7 +4352,7 @@ class SeminarPlanningApp {
                     work = customWork;
                 }
                 
-                const attendance = cells[5].querySelector('select')?.value || 'Y'; // 참석여부 값 가져오기
+                const attendance = cells[5].querySelector('select')?.value || 'N'; // 참석여부 값 가져오기
                 
                 if (name.trim()) {
                     attendees.push({
