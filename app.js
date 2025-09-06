@@ -337,7 +337,7 @@ class SeminarPlanningApp {
             
             console.log(`필드 매핑: ${mapping.key} -> ${mapping.id}, 값: ${value}, 요소:`, element);
             
-            if (element && value) {
+            if (element && value !== undefined && value !== null) {
                 element.value = value;
                 console.log(`값 설정 완료: ${mapping.key} = ${value}`);
             } else {
@@ -897,7 +897,7 @@ class SeminarPlanningApp {
             
             // select 요소 (type)
             const typeSelect = row.querySelector('select[data-field="type"]');
-            if (typeSelect && item.type) {
+            if (typeSelect && item.type !== undefined && item.type !== null) {
                 typeSelect.value = item.type;
                 console.log(`시간 계획 select 값 설정: ${item.type}`);
                 // 모바일에서 select 값이 제대로 설정되도록 강제 업데이트
@@ -908,7 +908,7 @@ class SeminarPlanningApp {
             
             // textarea 요소 (content)
             const contentTextarea = row.querySelector('textarea[data-field="content"]');
-            if (contentTextarea && item.content) {
+            if (contentTextarea && item.content !== undefined && item.content !== null) {
                 contentTextarea.value = item.content;
                 contentTextarea.textContent = item.content;
                 console.log(`시간 계획 textarea 값 설정: ${item.content}`);
@@ -916,7 +916,7 @@ class SeminarPlanningApp {
             
             // input 요소 (time)
             const timeInput = row.querySelector('input[data-field="time"]');
-            if (timeInput && item.time) {
+            if (timeInput && item.time !== undefined && item.time !== null) {
                 timeInput.value = item.time;
                 timeInput.setAttribute('value', item.time);
                 console.log(`시간 계획 time 값 설정: ${item.time}`);
@@ -924,7 +924,7 @@ class SeminarPlanningApp {
             
             // input 요소 (responsible)
             const responsibleInput = row.querySelector('input[data-field="responsible"]');
-            if (responsibleInput && item.responsible) {
+            if (responsibleInput && item.responsible !== undefined && item.responsible !== null) {
                 responsibleInput.value = item.responsible;
                 responsibleInput.setAttribute('value', item.responsible);
                 console.log(`시간 계획 responsible 값 설정: ${item.responsible}`);
@@ -1135,14 +1135,14 @@ class SeminarPlanningApp {
             // 데이터 채우기 (모바일 환경 고려)
             const nameInput = row.querySelector('input[data-field="name"]');
             
-            if (nameInput && item.name) {
+            if (nameInput && item.name !== undefined && item.name !== null) {
                 nameInput.value = item.name;
                 nameInput.setAttribute('value', item.name);
                 console.log(`참석자 name 값 설정: ${item.name}`);
             }
             
             // 직급 필드 처리
-            if (item.position) {
+            if (item.position !== undefined && item.position !== null) {
                 const positionOptions = ['상무', '선임', '이사', '전무', '책임', '팀장'];
                 const positionSelect = row.querySelector('select[data-field="position"]');
                 const positionCustomInput = row.querySelector('input[data-field="position-custom"]');
@@ -1167,7 +1167,7 @@ class SeminarPlanningApp {
             }
             
             // 소속 필드 처리
-            if (item.department) {
+            if (item.department !== undefined && item.department !== null) {
                 const departmentOptions = ['SI사업본부', 'AI사업본부', '경영관리본부', '전략사업본부'];
                 const departmentSelect = row.querySelector('select[data-field="department"]');
                 const departmentCustomInput = row.querySelector('input[data-field="department-custom"]');
@@ -1192,7 +1192,7 @@ class SeminarPlanningApp {
             }
             
             // 업무 필드 처리
-            if (item.work) {
+            if (item.work !== undefined && item.work !== null) {
                 const workOptions = ['본부장', '담당임원', '담당간부', '담당자', '기술지원팀장','영업대표', '프레임워크사업팀', 'SK증권 SM', '라이나 생명 SM', '산업은행 SM', '삼성카드 SM', 'PM'];
                 const workSelect = row.querySelector('select[data-field="work"]');
                 const workCustomInput = row.querySelector('input[data-field="work-custom"]');
