@@ -4426,31 +4426,31 @@ class SeminarPlanningApp {
             // □ 로 시작하는 경우 (공백 포함)
             if (trimmedLine.startsWith('□ ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`  □ ${content}`);
+                result.push(`\n  □ ${content}`);
             }
             // - 로 시작하는 경우 (공백 포함)
             else if (trimmedLine.startsWith('- ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`      - ${content}`);
+                result.push(`\n  - ${content}`);
             }
             // □ 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('□')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`  □ ${content}`);
+                result.push(`\n  □ ${content}`);
             }
             // - 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('-')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`      - ${content}`);
+                result.push(`\n  - ${content}`);
             }
             // 일반 텍스트인 경우
             else {
-                result.push(`  □ ${trimmedLine}`);
+                result.push(`  ${trimmedLine}`);
             }
         }
         
         console.log('파싱 결과:', result);
-        return result.join('\n');
+        return result.join('');
     }
 
     // 참석자 데이터 가져오기
