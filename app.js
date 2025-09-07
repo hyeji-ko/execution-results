@@ -5258,6 +5258,7 @@ class SeminarPlanningApp {
             }
             
             // 데이터 저장
+            console.log('💾 저장할 실시결과 데이터:', resultData);
             const result = await saveResultData(resultData);
             
             if (result.success) {
