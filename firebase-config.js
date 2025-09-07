@@ -2,7 +2,7 @@
 // 실제 프로젝트에서는 Firebase 콘솔에서 가져온 설정을 사용해야 합니다.
 
 // Firebase를 기본 저장소로 사용
-const useLocalStorage = true; // Firebase 연결 문제로 인해 로컬 스토리지 사용
+const useLocalStorage = false; // 임시로 로컬 스토리지 사용 (Firebase 연결 문제 해결 전까지)
 
 const firebaseConfig = {
     apiKey: "AIzaSyDorTHDMuGf-Ghinx3-vYD-NVz_nXk-J6I",
@@ -144,47 +144,6 @@ async function loadResultDataByKey(session, datetime) {
     } catch (error) {
         console.error('특정 실시결과 조회 오류:', error);
         return null;
-    }
-}
-
-// 실시결과 데이터 삭제 함수 (회차_일시를 키값으로 사용)
-async function deleteResultData(session, datetime) {
-    try {
-        if (!session || !datetime) {
-            return { success: false, message: '회차와 일시 정보가 필요합니다.' };
-        }
-
-        const key = `${session}_${datetime}`;
-        
-        if (useLocalStorage) {
-            // 로컬 스토리지에서 삭제
-            const data = localStorage.getItem('seminarResults');
-            if (data) {
-                const results = JSON.parse(data);
-                if (results[key]) {
-                    delete results[key];
-                    localStorage.setItem('seminarResults', JSON.stringify(results));
-                    return { success: true, message: '로컬 스토리지에서 실시결과 데이터가 삭제되었습니다.' };
-                } else {
-                    return { success: false, message: '삭제할 실시결과 데이터를 찾을 수 없습니다.' };
-                }
-            } else {
-                return { success: false, message: '저장된 실시결과 데이터가 없습니다.' };
-            }
-        } else {
-            // Firebase에서 삭제
-            const docRef = db.collection('seminarResults').doc(key);
-            const doc = await docRef.get();
-            if (doc.exists) {
-                await docRef.delete();
-                return { success: true, message: 'Firebase에서 실시결과 데이터가 삭제되었습니다.' };
-            } else {
-                return { success: false, message: '삭제할 실시결과 데이터를 찾을 수 없습니다.' };
-            }
-        }
-    } catch (error) {
-        console.error('실시결과 삭제 오류:', error);
-        return { success: false, message: '실시결과 삭제 중 오류가 발생했습니다: ' + error.message };
     }
 }
 
@@ -449,7 +408,6 @@ window.loadAllPlans = loadAllPlans;
 window.saveResultData = saveResultData;
 window.loadResultData = loadResultData;
 window.loadResultDataByKey = loadResultDataByKey;
-window.deleteResultData = deleteResultData;
 window.db = db;
 window.useLocalStorage = useLocalStorage;
 

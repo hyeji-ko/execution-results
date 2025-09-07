@@ -21,10 +21,6 @@ class SeminarPlanningApp {
     }
     
     async initializeApp() {
-        // 먼저 이벤트 리스너를 등록하여 버튼이 즉시 작동하도록 함
-        this.bindEvents();
-        
-        // 그 다음 라이브러리 확인 및 나머지 초기화
         await this.checkLibraries();
         await this.init();
     }
@@ -105,7 +101,7 @@ class SeminarPlanningApp {
     }
 
     async init() {
-        // bindEvents()는 이미 initializeApp()에서 호출됨
+        this.bindEvents();
         await this.loadInitialData();
         this.addDefaultRows();
         
@@ -116,86 +112,20 @@ class SeminarPlanningApp {
     }
 
     bindEvents() {
-        console.log('🔗 이벤트 리스너 등록 시작');
-        
         // 초기화 버튼
-        const resetBtn = document.getElementById('resetBtn');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.resetForm());
-            console.log('✅ 초기화 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 초기화 버튼을 찾을 수 없습니다');
-        }
+        document.getElementById('resetBtn').addEventListener('click', () => this.resetForm());
         
-        // 최상위 저장 버튼 (헤더의 저장 버튼)
-        const headerSaveBtn = document.querySelector('header button[id="saveBtn"]');
-        if (headerSaveBtn) {
-            headerSaveBtn.addEventListener('click', () => {
-                console.log('💾 최상위 저장 버튼 클릭됨');
-                this.saveData();
-            });
-            console.log('✅ 최상위 저장 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 최상위 저장 버튼을 찾을 수 없습니다');
-        }
+        // 저장 버튼
+        document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
         
-        // 최상위 삭제 버튼 (헤더의 삭제 버튼)
-        const headerDeleteBtn = document.querySelector('header button[id="deleteBtn"]');
-        if (headerDeleteBtn) {
-            headerDeleteBtn.addEventListener('click', () => {
-                console.log('🗑️ 최상위 삭제 버튼 클릭됨');
-                this.deleteData();
-            });
-            console.log('✅ 최상위 삭제 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 최상위 삭제 버튼을 찾을 수 없습니다');
-        }
+        // 삭제 버튼
+        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
         
-        // 최상위 조회 버튼 (헤더의 조회 버튼)
-        const headerLoadBtn = document.querySelector('header button[id="loadBtn"]');
-        if (headerLoadBtn) {
-            headerLoadBtn.addEventListener('click', () => {
-                console.log('🔍 최상위 조회 버튼 클릭됨');
-                this.showSearchModal();
-            });
-            console.log('✅ 최상위 조회 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 최상위 조회 버튼을 찾을 수 없습니다');
-        }
+        // 일괄삭제 버튼
+        //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
         
-        // 세미나 데이터 관리 섹션의 버튼들 - 최상위 버튼을 클릭하도록 연결
-        const managementSaveBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="saveBtn"]');
-        if (managementSaveBtn) {
-            managementSaveBtn.addEventListener('click', () => {
-                console.log('💾 세미나 데이터 관리 저장 버튼 클릭됨 - 최상위 버튼 트리거');
-                headerSaveBtn.click();
-            });
-            console.log('✅ 세미나 데이터 관리 저장 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 세미나 데이터 관리 저장 버튼을 찾을 수 없습니다');
-        }
-        
-        const managementDeleteBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="deleteBtn"]');
-        if (managementDeleteBtn) {
-            managementDeleteBtn.addEventListener('click', () => {
-                console.log('🗑️ 세미나 데이터 관리 삭제 버튼 클릭됨 - 최상위 버튼 트리거');
-                headerDeleteBtn.click();
-            });
-            console.log('✅ 세미나 데이터 관리 삭제 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 세미나 데이터 관리 삭제 버튼을 찾을 수 없습니다');
-        }
-        
-        const managementLoadBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="loadBtn"]');
-        if (managementLoadBtn) {
-            managementLoadBtn.addEventListener('click', () => {
-                console.log('🔍 세미나 데이터 관리 조회 버튼 클릭됨 - 최상위 버튼 트리거');
-                headerLoadBtn.click();
-            });
-            console.log('✅ 세미나 데이터 관리 조회 버튼 이벤트 리스너 등록 완료');
-        } else {
-            console.error('❌ 세미나 데이터 관리 조회 버튼을 찾을 수 없습니다');
-        }
+        // 조회 버튼
+        document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
         
         
         // 시간 계획 행 추가
@@ -224,6 +154,8 @@ class SeminarPlanningApp {
         document.getElementById('mainDownloadFile2').addEventListener('click', () => this.downloadMainFile(2));
         document.getElementById('mainFileUploadArea2').addEventListener('click', () => document.getElementById('mainSketchFile2').click());
         
+        // 메인화면 실시결과 저장 버튼
+        document.getElementById('saveMainResultBtn').addEventListener('click', () => this.saveMainResultData());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
@@ -275,14 +207,10 @@ class SeminarPlanningApp {
             datetimeElement.addEventListener('input', (e) => {
                 this.currentData.datetime = e.target.value;
                 this.validateDateTimeFormat(e.target);
-                // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
-                this.checkAndLoadResultData();
             });
             
             datetimeElement.addEventListener('blur', (e) => {
                 this.validateDateTimeFormat(e.target);
-                // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
-                this.checkAndLoadResultData();
             });
         }
         
@@ -401,49 +329,22 @@ class SeminarPlanningApp {
         try {
             console.log('loadInitialData 시작');
             
-            // loadAllPlans 함수가 정의되어 있는지 확인
-            if (typeof window.loadAllPlans !== 'function') {
-                console.warn('loadAllPlans 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
+            // loadData 함수가 정의되어 있는지 확인
+            if (typeof window.loadData !== 'function') {
+                console.warn('loadData 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
                 return;
             }
             
-            // 모든 세미나 데이터 불러오기
-            console.log('모든 세미나 데이터 로드 시작...');
-            const result = await window.loadAllPlans();
-            console.log('전체 데이터 로드 결과:', result);
+            // Firebase에서 저장된 데이터 불러오기
+            console.log('Firebase에서 데이터 로드 시작...');
+            const result = await window.loadData();
+            console.log('Firebase 로드 결과:', result);
             
-            if (result.success && result.data && result.data.length > 0) {
-                // 회차_일시를 키값으로 내림차순 정렬
-                const sortedData = result.data.sort((a, b) => {
-                    // 회차에서 숫자 추출 (예: "제 3회" -> 3, "제 4회" -> 4)
-                    const getSessionNumber = (session) => {
-                        if (!session) return 0;
-                        const match = session.match(/제\s*(\d+)회/);
-                        return match ? parseInt(match[1]) : 0;
-                    };
-                    
-                    const sessionNumA = getSessionNumber(a.session);
-                    const sessionNumB = getSessionNumber(b.session);
-                    
-                    // 먼저 회차로 비교 (내림차순)
-                    if (sessionNumA !== sessionNumB) {
-                        return sessionNumB - sessionNumA;
-                    }
-                    
-                    // 회차가 같으면 일시로 비교 (내림차순)
-                    const dateA = new Date(a.datetime || '1970-01-01');
-                    const dateB = new Date(b.datetime || '1970-01-01');
-                    return dateB - dateA;
-                });
-                
-                // 첫 번째 데이터 (최신 데이터) 로드
-                const latestData = sortedData[0];
-                console.log('최신 데이터 로드:', latestData);
-                
-                // 데이터에서 id 필드 제거
-                const { id, ...dataWithoutId } = latestData;
+            if (result.success) {
+                // Firebase에서 가져온 데이터에서 id 필드 제거
+                const { id, ...dataWithoutId } = result.data;
                 this.currentData = dataWithoutId;
-                this.currentDocumentId = id; // Firebase 문서 ID 저장
+                this.currentDocumentId = result.id; // Firebase 문서 ID 저장
                 console.log('currentData 설정 완료:', this.currentData);
                 console.log('currentDocumentId:', this.currentDocumentId);
                 console.log('timeSchedule 원본 데이터:', this.currentData.timeSchedule);
@@ -463,12 +364,7 @@ class SeminarPlanningApp {
                 await this.populateForm();
                 console.log('populateForm 호출 완료');
                 
-                // 실시결과 데이터도 자동으로 로드
-                console.log('실시결과 데이터 자동 로드 시작...');
-                await this.loadMainResultData();
-                console.log('실시결과 데이터 자동 로드 완료');
-                
-                console.log('최신 세미나 데이터를 성공적으로 불러왔습니다.');
+                console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
             } else {
                 console.log('저장된 데이터가 없습니다:', result.message);
             }
@@ -545,7 +441,11 @@ class SeminarPlanningApp {
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
         
-        // 실시결과 데이터 로드 (스케치 포함)
+        // 스케치 정보가 있으면 표시 (loadMainResultData 후에)
+        if (this.currentData.sketches && this.currentData.sketches.length > 0) {
+            console.log('🖼️ currentData에서 스케치 정보 발견, 표시:', this.currentData.sketches);
+            this.populateMainResultForm({ sketches: this.currentData.sketches });
+        }
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
@@ -825,8 +725,8 @@ class SeminarPlanningApp {
             <td class="px-4 py-3 border-b">
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                         data-field="attendance">
-                    <option value="Y">Y</option>
-                    <option value="N" selected>N</option>
+                    <option value="Y" selected>Y</option>
+                    <option value="N">N</option>
                 </select>
             </td>
             <td class="px-4 py-3 border-b">
@@ -917,7 +817,22 @@ class SeminarPlanningApp {
             
             // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
             if (field === 'department') {
-                this.toggleCustomDepartmentInput(index, value);
+                // 현재 활성화된 요소 찾기
+                const activeElement = document.activeElement;
+                const selectElement = activeElement.tagName === 'SELECT' ? activeElement : 
+                                    activeElement.closest('tr').querySelector('select[data-field="department"]');
+                const inputElement = document.getElementById(`departmentInput_${index}`);
+                
+                if (value === '직접입력') {
+                    if (selectElement) selectElement.style.display = 'none';
+                    if (inputElement) {
+                        inputElement.classList.remove('hidden');
+                        inputElement.focus();
+                    }
+                } else {
+                    if (selectElement) selectElement.style.display = 'block';
+                    if (inputElement) inputElement.classList.add('hidden');
+                }
             }
             
             // 직급 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
@@ -940,8 +855,7 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
-                    console.log('직급 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
+                    customInput.focus();
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -950,24 +864,6 @@ class SeminarPlanningApp {
         }
     }
     
-    // 직접입력 필드 토글 (소속용)
-    toggleCustomDepartmentInput(index, value) {
-        const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
-        if (row) {
-            const customInput = row.querySelector('input[data-field="department-custom"]');
-            if (customInput) {
-                if (value === '직접입력') {
-                    customInput.classList.remove('hidden');
-                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
-                    console.log('소속 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
-                } else {
-                    customInput.classList.add('hidden');
-                    customInput.value = '';
-                }
-            }
-        }
-    }
-
     // 직접입력 필드 토글 (업무용)
     toggleCustomWorkInput(index, value) {
         const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
@@ -976,8 +872,7 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
-                    console.log('업무 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
+                    customInput.focus();
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -1310,7 +1205,7 @@ class SeminarPlanningApp {
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                             data-field="department"
-                            onchange="app.updateAttendeeList(${index}, 'department', this.value); app.toggleCustomDepartmentInput(${index}, this.value)">
+                            onchange="app.updateAttendeeList(${index}, 'department', this.value)">
                         <option value="">선택하세요</option>
                         <option value="SI사업본부">SI사업본부</option>
                         <option value="AI사업본부">AI사업본부</option>
@@ -1655,71 +1550,6 @@ class SeminarPlanningApp {
             console.error('참석여부 변경 저장 오류:', error);
         }
     }
-
-    // 현재 세미나 데이터 삭제
-    async deleteData() {
-        try {
-            // 현재 세미나 정보 확인
-            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
-            const datetime = document.getElementById('datetime').value;
-            
-            if (!session || !datetime) {
-                this.showErrorToast('삭제할 세미나 정보를 먼저 입력해주세요.');
-                return;
-            }
-            
-            // 사용자 확인
-            if (!confirm(`정말로 "${session}" 세미나 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
-                return;
-            }
-            
-            this.showLoading(true);
-            
-            // 회차 + 일시를 키값으로 사용하여 기존 데이터 찾기
-            const keyValue = `${session}_${datetime}`;
-            const existingData = await this.findExistingDataByKey(keyValue);
-            
-            if (existingData) {
-                // Firebase 또는 로컬 스토리지에서 데이터 삭제
-                if (useLocalStorage) {
-                    // 로컬 스토리지에서 삭제
-                    let allData = this.getAllLocalStorageData();
-                    allData = allData.filter(item => item.id !== existingData.id);
-                    localStorage.setItem('seminarPlans', JSON.stringify(allData));
-                    
-                    this.showSuccessToast(`${session} 세미나 데이터가 성공적으로 삭제되었습니다.`);
-                } else {
-                    // Firebase에서 삭제
-                    await db.collection('seminarPlans').doc(existingData.id).delete();
-                    this.showSuccessToast(`${session} 세미나 데이터가 성공적으로 삭제되었습니다.`);
-                }
-                
-                // 현재 데이터 초기화
-                this.currentData = {
-                    session: '',
-                    objective: '',
-                    datetime: '',
-                    location: '',
-                    attendees: '',
-                    timeSchedule: [],
-                    attendeeList: []
-                };
-                this.currentDocumentId = null;
-                
-                // 폼 초기화
-                this.initializeMainForm();
-                
-            } else {
-                this.showErrorToast('삭제할 세미나 데이터를 찾을 수 없습니다.');
-            }
-            
-        } catch (error) {
-            console.error('데이터 삭제 오류:', error);
-            this.showErrorToast(`데이터 삭제 실패: ${error.message}`);
-        } finally {
-            this.showLoading(false);
-        }
-    }
     
     // 회차 + 일시 키값으로 기존 데이터 찾기
     async findExistingDataByKey(keyValue) {
@@ -1844,16 +1674,7 @@ class SeminarPlanningApp {
 
     collectFormData() {
         // 기본 정보 수집
-        // 회차 값 올바르게 가져오기
-        const sessionSelect = document.getElementById('sessionSelect');
-        const sessionInput = document.getElementById('sessionInput');
-        
-        if (sessionSelect.value === '직접입력') {
-            this.currentData.session = sessionInput.value;
-        } else {
-            this.currentData.session = sessionSelect.value;
-        }
-        
+        this.currentData.session = this.currentData.session || '';
         this.currentData.objective = document.getElementById('objective').value;
         this.currentData.datetime = document.getElementById('datetime').value;
         this.currentData.location = document.getElementById('location').value;
@@ -2032,27 +1853,11 @@ class SeminarPlanningApp {
                     attendees: this.ensureStringValue(item.attendees)
                 }));
                 
-                // 회차_일시를 키값으로 내림차순 정렬
+                // 일시를 키값으로 내림차순 정렬
                 const sortedData = normalizedData.sort((a, b) => {
-                    // 회차에서 숫자 추출 (예: "제 3회" -> 3, "제 4회" -> 4)
-                    const getSessionNumber = (session) => {
-                        if (!session) return 0;
-                        const match = session.match(/제\s*(\d+)회/);
-                        return match ? parseInt(match[1]) : 0;
-                    };
-                    
-                    const sessionNumA = getSessionNumber(a.session);
-                    const sessionNumB = getSessionNumber(b.session);
-                    
-                    // 먼저 회차로 비교 (내림차순)
-                    if (sessionNumA !== sessionNumB) {
-                        return sessionNumB - sessionNumA;
-                    }
-                    
-                    // 회차가 같으면 일시로 비교 (내림차순)
                     const dateA = new Date(a.datetime || '1970-01-01');
                     const dateB = new Date(b.datetime || '1970-01-01');
-                    return dateB - dateA;
+                    return dateB - dateA; // 내림차순 (최신 날짜가 먼저)
                 });
                 
                 console.log('📊 조회된 데이터:', sortedData);
@@ -2370,123 +2175,6 @@ class SeminarPlanningApp {
         this.toggleExportResultPDFButton();
     }
 
-    // 실시결과 폼 초기화
-    initializeResultForm() {
-        // 실시결과 입력 필드 초기화
-        const mainResultContent = document.getElementById('mainResultContent');
-        const mainResultFuturePlan = document.getElementById('mainResultFuturePlan');
-        
-        if (mainResultContent) {
-            mainResultContent.value = '';
-        }
-        if (mainResultFuturePlan) {
-            mainResultFuturePlan.value = '';
-        }
-        
-        console.log('✅ 실시결과 폼 초기화 완료');
-    }
-
-    // 모든 폼 데이터 클리어 (회차 변경 시)
-    clearAllFormData() {
-        console.log('🧹 모든 폼 데이터 클리어 시작');
-        
-        // 1. 실행계획 폼 초기화
-        this.initializeMainForm();
-        
-        // 2. 실시결과 폼 초기화
-        this.initializeResultForm();
-        
-        // 3. 스케치 폼 초기화
-        this.initializeSketchForm();
-        
-        console.log('✅ 모든 폼 데이터 클리어 완료');
-    }
-
-    // 스케치 폼 초기화
-    initializeSketchForm() {
-        // 스케치 1 초기화
-        const sketchTitle1 = document.getElementById('mainSketchTitle1');
-        const sketchFile1 = document.getElementById('mainSketchFile1');
-        const filePreview1 = document.getElementById('mainFilePreview1');
-        const fileUploadArea1 = document.getElementById('mainFileUploadArea1');
-        const previewImage1 = document.getElementById('mainPreviewImage1');
-        const fileName1 = document.getElementById('mainFileName1');
-        
-        if (sketchTitle1) sketchTitle1.value = '';
-        if (sketchFile1) sketchFile1.value = '';
-        // 미리보기 숨기고 업로드 영역은 보이게 함
-        if (filePreview1) filePreview1.classList.add('hidden');
-        if (fileUploadArea1) fileUploadArea1.classList.remove('hidden');
-        if (previewImage1) previewImage1.src = '';
-        if (fileName1) fileName1.textContent = '';
-        
-        // 스케치 2 초기화
-        const sketchTitle2 = document.getElementById('mainSketchTitle2');
-        const sketchFile2 = document.getElementById('mainSketchFile2');
-        const filePreview2 = document.getElementById('mainFilePreview2');
-        const fileUploadArea2 = document.getElementById('mainFileUploadArea2');
-        const previewImage2 = document.getElementById('mainPreviewImage2');
-        const fileName2 = document.getElementById('mainFileName2');
-        
-        if (sketchTitle2) sketchTitle2.value = '';
-        if (sketchFile2) sketchFile2.value = '';
-        // 미리보기 숨기고 업로드 영역은 보이게 함
-        if (filePreview2) filePreview2.classList.add('hidden');
-        if (fileUploadArea2) fileUploadArea2.classList.remove('hidden');
-        if (previewImage2) previewImage2.src = '';
-        if (fileName2) fileName2.textContent = '';
-        
-        console.log('✅ 스케치 폼 초기화 완료 - 업로드 영역은 유지됨');
-    }
-
-    // 회차와 일시가 입력되었을 때 실시결과 데이터 자동 조회 및 초기화
-    async checkAndLoadResultData() {
-        try {
-            // 회차와 일시가 모두 입력되었는지 확인
-            const session = this.currentData.session;
-            const datetime = this.currentData.datetime;
-            
-            if (!session || !datetime) {
-                console.log('회차 또는 일시가 입력되지 않아 실시결과 데이터 조회를 건너뜁니다.');
-                return;
-            }
-            
-            console.log(`🔍 실시결과 데이터 자동 조회 시작: ${session}_${datetime}`);
-            console.log('🔍 checkAndLoadResultData - currentData 상태:', {
-                session: this.currentData.session,
-                datetime: this.currentData.datetime,
-                sessionSelectValue: document.getElementById('sessionSelect').value,
-                sessionInputValue: document.getElementById('sessionInput').value,
-                datetimeValue: document.getElementById('datetime').value
-            });
-            
-            // 실시결과 데이터 조회
-            const resultData = await window.loadResultDataByKey(session, datetime);
-            
-            if (resultData) {
-                // 실시결과 데이터가 있으면 폼에 채우기
-                console.log('✅ 실시결과 데이터 발견, 폼에 채우기:', resultData);
-                
-                // 실시결과 데이터를 그대로 폼에 채우기 (스케치 포함)
-                this.populateMainResultForm(resultData);
-            } else {
-                // 실시결과 데이터가 없으면 초기화
-                console.log('ℹ️ 실시결과 데이터가 없어서 초기화합니다.');
-                this.initializeResultForm();
-            }
-            
-            // 회차_일시 변경 시 모든 항목 클리어
-            console.log('🔄 회차_일시 변경으로 인한 모든 항목 클리어');
-            this.clearAllFormData();
-            
-        } catch (error) {
-            console.error('실시결과 데이터 자동 조회 오류:', error);
-            // 오류 발생 시에도 초기화
-            this.initializeResultForm();
-            this.initializeSketchForm();
-        }
-    }
-
     // 회차 필드 업데이트
     updateSessionField(value) {
         const selectElement = document.getElementById('sessionSelect');
@@ -2506,16 +2194,11 @@ class SeminarPlanningApp {
             inputElement.classList.add('hidden');
             this.currentData.session = '';
         }
-        
-        // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
-        this.checkAndLoadResultData();
     }
 
     // 회차 직접 입력 값 업데이트
     updateSessionValue(value) {
         this.currentData.session = value;
-        // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
-        this.checkAndLoadResultData();
     }
 
     // 회차 필드 데이터 채우기
@@ -4359,71 +4042,49 @@ class SeminarPlanningApp {
         }
     }
 
-    // 데이터 삭제 메서드 (세미나 계획 + 실시결과 데이터 모두 삭제)
+    // 데이터 삭제 메서드
     async deleteData() {
         try {
             // 현재 데이터가 있는지 확인
-            if (!this.currentData || !this.currentData.session || !this.currentData.datetime) {
+            if (!this.currentData || !this.currentData.datetime) {
                 this.showErrorToast('삭제할 데이터가 없습니다.');
                 return;
             }
 
-            const session = this.currentData.session;
-            const datetime = this.currentData.datetime;
-
             // 사용자에게 삭제 확인
-            if (!confirm(`정말로 "${session}" 세미나의 모든 데이터(계획 + 실시결과)를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+            if (!confirm(`정말로 "${this.currentData.datetime}" 세미나 계획을 삭제하시겠습니까?`)) {
                 return;
             }
 
             this.showLoading(true);
 
-            let planDeleteSuccess = false;
-            let resultDeleteSuccess = false;
-            let errorMessages = [];
-
-            // 1. 세미나 계획 데이터 삭제
-            try {
-                if (this.currentDocumentId) {
-                    const result = await window.deleteData(this.currentDocumentId);
-                    if (result.success) {
-                        planDeleteSuccess = true;
-                        console.log('✅ 세미나 계획 데이터 삭제 성공');
-                    } else {
-                        errorMessages.push(`계획 데이터 삭제 실패: ${result.message}`);
-                    }
+            // Firebase에서 데이터 삭제
+            if (this.currentDocumentId) {
+                const result = await window.deleteData(this.currentDocumentId);
+                if (result.success) {
+                    this.showSuccessToast('데이터가 성공적으로 삭제되었습니다.');
+                    
+                    // 현재 데이터 초기화
+                    this.currentData = {
+                        session: '',
+                        objective: '',
+                        datetime: '',
+                        location: '',
+                        attendees: '',
+                        timeSchedule: [],
+                        attendeeList: []
+                    };
+                    this.currentDocumentId = null;
+                    
+                    // 폼 초기화
+                    this.initializeMainForm();
                 } else {
-                    // 로컬 스토리지에서 데이터 삭제
-                    localStorage.removeItem('seminarData');
-                    planDeleteSuccess = true;
-                    console.log('✅ 로컬 스토리지 세미나 계획 데이터 삭제 성공');
+                    this.showErrorToast(`데이터 삭제 실패: ${result.error}`);
                 }
-            } catch (error) {
-                errorMessages.push(`계획 데이터 삭제 오류: ${error.message}`);
-            }
-
-            // 2. 실시결과 데이터 삭제
-            try {
-                const resultDeleteResult = await window.deleteResultData(session, datetime);
-                if (resultDeleteResult.success) {
-                    resultDeleteSuccess = true;
-                    console.log('✅ 실시결과 데이터 삭제 성공');
-                } else {
-                    // 실시결과 데이터가 없는 경우는 정상적인 상황일 수 있음
-                    if (resultDeleteResult.message.includes('찾을 수 없습니다') || resultDeleteResult.message.includes('없습니다')) {
-                        resultDeleteSuccess = true; // 데이터가 없는 것은 정상
-                        console.log('ℹ️ 실시결과 데이터가 없어서 삭제할 것이 없음');
-                    } else {
-                        errorMessages.push(`실시결과 데이터 삭제 실패: ${resultDeleteResult.message}`);
-                    }
-                }
-            } catch (error) {
-                errorMessages.push(`실시결과 데이터 삭제 오류: ${error.message}`);
-            }
-
-            // 3. 결과 처리
-            if (planDeleteSuccess && resultDeleteSuccess) {
-                this.showSuccessToast(`${session} 세미나의 모든 데이터가 성공적으로 삭제되었습니다.`);
+            } else {
+                // 로컬 스토리지에서 데이터 삭제
+                localStorage.removeItem('seminarData');
+                this.showSuccessToast('데이터가 성공적으로 삭제되었습니다.');
                 
                 // 현재 데이터 초기화
                 this.currentData = {
@@ -4439,17 +4100,7 @@ class SeminarPlanningApp {
                 
                 // 폼 초기화
                 this.initializeMainForm();
-                
-                // 실시결과 폼 초기화
-                this.initializeResultForm();
-                
-                // 스케치 폼 초기화
-                this.initializeSketchForm();
-            } else {
-                const errorMessage = errorMessages.length > 0 ? errorMessages.join('\n') : '알 수 없는 오류가 발생했습니다.';
-                this.showErrorToast(`데이터 삭제 중 일부 오류가 발생했습니다:\n${errorMessage}`);
             }
-
         } catch (error) {
             console.error('데이터 삭제 오류:', error);
             this.showErrorToast(`데이터 삭제 실패: ${error.message}`);
@@ -4984,29 +4635,24 @@ class SeminarPlanningApp {
     // 메인화면 실시결과 데이터 로드
     async loadMainResultData() {
         try {
-            // 회차 값 올바르게 가져오기
-            const sessionSelect = document.getElementById('sessionSelect');
-            const sessionInput = document.getElementById('sessionInput');
-            let session = '';
-            
-            if (sessionSelect.value === '직접입력') {
-                session = sessionInput.value;
-            } else {
-                session = sessionSelect.value;
-            }
-            
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
             const datetime = document.getElementById('datetime').value;
             
-            console.log('🔍 메인화면 실시결과 데이터 로드 시도:', { 
-                sessionSelectValue: sessionSelect.value, 
-                sessionInputValue: sessionInput.value,
-                finalSession: session, 
-                datetime 
-            });
+            console.log('🔍 메인화면 실시결과 데이터 로드 시도:', { session, datetime });
             
-            // 세미나 정보가 없으면 실시결과 데이터 조회를 건너뜀
+            // 세미나 정보가 없어도 currentData에서 스케치 정보를 확인
             if (!session || !datetime) {
-                console.log('⚠️ 세미나 정보가 없어서 실시결과 데이터 조회를 건너뜁니다.');
+                console.log('⚠️ 세미나 정보가 없지만 currentData에서 스케치 정보 확인');
+                
+                // currentData에 스케치 정보가 있으면 표시
+                if (this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0) {
+                    console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
+                    this.populateMainResultForm({ sketches: this.currentData.sketches });
+                    return;
+                }
+                
+                console.log('ℹ️ currentData에도 스케치 정보가 없음, 기존 상태 유지');
+                // this.clearMainResultForm(); // 주석 처리하여 기존 스케치 유지
                 return;
             }
             
@@ -5015,9 +4661,21 @@ class SeminarPlanningApp {
             console.log('📊 조회된 실시결과 데이터:', resultData);
             console.log('📊 resultData.objective:', resultData ? resultData.objective : 'null');
             
-            // 회차_일시 변경 시 모든 항목 클리어
-            console.log('🔄 회차_일시 변경으로 인한 모든 항목 클리어');
-            this.clearAllFormData();
+            if (resultData) {
+                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드:', resultData);
+                this.populateMainResultForm(resultData);
+            } else {
+                console.log('ℹ️ 기존 실시결과 데이터가 없음, currentData에서 스케치 정보 확인');
+                
+                // currentData에 스케치 정보가 있으면 표시
+                if (this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0) {
+                    console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
+                    this.populateMainResultForm({ sketches: this.currentData.sketches });
+                } else {
+                    console.log('ℹ️ currentData에도 스케치 정보가 없음, 폼 초기화');
+                    this.clearMainResultForm();
+                }
+            }
             
         } catch (error) {
             console.error('메인화면 실시결과 데이터 로드 오류:', error);
@@ -5039,9 +4697,7 @@ class SeminarPlanningApp {
                     mainContentEl.value = resultData.mainContent;
                     console.log('✅ 주요 내용 설정 (실시결과 데이터):', resultData.mainContent);
                 } else {
-                    // 실시결과 데이터에 주요 내용이 없으면 빈 값으로 설정
-                    mainContentEl.value = '';
-                    console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 빈 값으로 설정');
+                    console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 현재 폼 값 유지:', mainContentEl.value);
                 }
                 // PDF 실시결과 내보내기 버튼 상태 업데이트
                 this.toggleExportResultPDFButton();
@@ -5052,9 +4708,7 @@ class SeminarPlanningApp {
                     futurePlanEl.value = resultData.futurePlan;
                     console.log('✅ 향후 계획 설정 (실시결과 데이터):', resultData.futurePlan);
                 } else {
-                    // 실시결과 데이터에 향후 계획이 없으면 빈 값으로 설정
-                    futurePlanEl.value = '';
-                    console.log('ℹ️ 실시결과 데이터에 향후 계획이 없음, 빈 값으로 설정');
+                    console.log('ℹ️ 실시결과 데이터에 향후 계획이 없음, 현재 폼 값 유지:', futurePlanEl.value);
                 }
             }
             
@@ -5114,8 +4768,9 @@ class SeminarPlanningApp {
                     }
                 }
             } else {
-                // 스케치가 없으면 기존 상태 유지
+                // 스케치가 없으면 초기화하지 않고 기존 상태 유지
                 console.log('ℹ️ 스케치 데이터가 없지만 기존 상태 유지');
+                // this.clearMainSketchFields(); // 주석 처리하여 기존 스케치 유지
             }
             
             console.log('✅ 메인화면 폼 데이터 채우기 완료');
@@ -5182,8 +4837,14 @@ class SeminarPlanningApp {
             const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
-            // 실시결과 저장은 필수가 아님 (추후 등록 가능)
-            // 유효성 검사 제거
+            // 유효성 검사
+            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
+                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
+                if (!skipLoading) {
+                    this.showLoading(false);
+                }
+                return;
+            }
             
             // 기존 실시결과 데이터 조회
             const existingResult = await loadResultDataByKey(session, datetime);
@@ -5252,14 +4913,10 @@ class SeminarPlanningApp {
             }
             
             // 데이터 저장
-            console.log('💾 저장할 실시결과 데이터:', resultData);
             const result = await saveResultData(resultData);
             
             if (result.success) {
-                // 메인 저장 시에는 토스트 메시지 표시하지 않음 (skipLoading = true)
-                if (!skipLoading) {
-                    this.showSuccessToast('메인화면 실시결과가 성공적으로 저장되었습니다.');
-                }
+                this.showSuccessToast('메인화면 실시결과가 성공적으로 저장되었습니다.');
             } else {
                 this.showErrorToast(result.message);
             }
@@ -5275,11 +4932,9 @@ class SeminarPlanningApp {
     }
     
     // 스케치 정보만 저장하는 함수
-    async saveSketchData(skipLoading = false) {
+    async saveSketchData() {
         try {
-            if (!skipLoading) {
-                this.showLoading(true);
-            }
+            this.showLoading(true);
             
             // 현재 세미나 정보 가져오기
             const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
@@ -5382,13 +5037,10 @@ class SeminarPlanningApp {
             const result = await saveResultData(sketchData);
             
             if (result.success) {
-                // 메인 저장 시에는 토스트 메시지 표시하지 않음 (skipLoading = true)
-                if (!skipLoading) {
-                    if (sketchData.sketches.length === 0) {
-                        this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
-                    } else {
-                        this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
-                    }
+                if (sketchData.sketches.length === 0) {
+                    this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
+                } else {
+                    this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
                 }
                 // 스케치 저장 후 버튼 상태 업데이트
                 this.toggleQuickSaveSketchButton();
@@ -5400,9 +5052,7 @@ class SeminarPlanningApp {
             console.error('스케치 저장 오류:', error);
             this.showErrorToast('스케치 저장 중 오류가 발생했습니다.');
         } finally {
-            if (!skipLoading) {
-                this.showLoading(false);
-            }
+            this.showLoading(false);
         }
     }
 
