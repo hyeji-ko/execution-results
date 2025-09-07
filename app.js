@@ -829,8 +829,8 @@ class SeminarPlanningApp {
             <td class="px-4 py-3 border-b">
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                         data-field="attendance">
-                    <option value="Y" selected>Y</option>
-                    <option value="N">N</option>
+                    <option value="Y">Y</option>
+                    <option value="N" selected>N</option>
                 </select>
             </td>
             <td class="px-4 py-3 border-b">
