@@ -2387,12 +2387,15 @@ class SeminarPlanningApp {
         const sketchTitle1 = document.getElementById('mainSketchTitle1');
         const sketchFile1 = document.getElementById('mainSketchFile1');
         const filePreview1 = document.getElementById('mainFilePreview1');
+        const fileUploadArea1 = document.getElementById('mainFileUploadArea1');
         const previewImage1 = document.getElementById('mainPreviewImage1');
         const fileName1 = document.getElementById('mainFileName1');
         
         if (sketchTitle1) sketchTitle1.value = '';
         if (sketchFile1) sketchFile1.value = '';
+        // 미리보기 숨기고 업로드 영역은 보이게 함
         if (filePreview1) filePreview1.classList.add('hidden');
+        if (fileUploadArea1) fileUploadArea1.classList.remove('hidden');
         if (previewImage1) previewImage1.src = '';
         if (fileName1) fileName1.textContent = '';
         
@@ -2400,16 +2403,19 @@ class SeminarPlanningApp {
         const sketchTitle2 = document.getElementById('mainSketchTitle2');
         const sketchFile2 = document.getElementById('mainSketchFile2');
         const filePreview2 = document.getElementById('mainFilePreview2');
+        const fileUploadArea2 = document.getElementById('mainFileUploadArea2');
         const previewImage2 = document.getElementById('mainPreviewImage2');
         const fileName2 = document.getElementById('mainFileName2');
         
         if (sketchTitle2) sketchTitle2.value = '';
         if (sketchFile2) sketchFile2.value = '';
+        // 미리보기 숨기고 업로드 영역은 보이게 함
         if (filePreview2) filePreview2.classList.add('hidden');
+        if (fileUploadArea2) fileUploadArea2.classList.remove('hidden');
         if (previewImage2) previewImage2.src = '';
         if (fileName2) fileName2.textContent = '';
         
-        console.log('✅ 스케치 폼 초기화 완료');
+        console.log('✅ 스케치 폼 초기화 완료 - 업로드 영역은 유지됨');
     }
 
     // 회차와 일시가 입력되었을 때 실시결과 데이터 자동 조회 및 초기화
