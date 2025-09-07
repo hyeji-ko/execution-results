@@ -275,10 +275,14 @@ class SeminarPlanningApp {
             datetimeElement.addEventListener('input', (e) => {
                 this.currentData.datetime = e.target.value;
                 this.validateDateTimeFormat(e.target);
+                // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
+                this.checkAndLoadResultData();
             });
             
             datetimeElement.addEventListener('blur', (e) => {
                 this.validateDateTimeFormat(e.target);
+                // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
+                this.checkAndLoadResultData();
             });
         }
         
@@ -2429,6 +2433,42 @@ class SeminarPlanningApp {
         console.log('✅ 스케치 폼 초기화 완료');
     }
 
+    // 회차와 일시가 입력되었을 때 실시결과 데이터 자동 조회 및 초기화
+    async checkAndLoadResultData() {
+        try {
+            // 회차와 일시가 모두 입력되었는지 확인
+            const session = this.currentData.session;
+            const datetime = this.currentData.datetime;
+            
+            if (!session || !datetime) {
+                console.log('회차 또는 일시가 입력되지 않아 실시결과 데이터 조회를 건너뜁니다.');
+                return;
+            }
+            
+            console.log(`🔍 실시결과 데이터 자동 조회 시작: ${session}_${datetime}`);
+            
+            // 실시결과 데이터 조회
+            const resultData = await window.loadResultDataByKey(session, datetime);
+            
+            if (resultData) {
+                // 실시결과 데이터가 있으면 폼에 채우기
+                console.log('✅ 실시결과 데이터 발견, 폼에 채우기:', resultData);
+                this.populateMainResultForm(resultData);
+            } else {
+                // 실시결과 데이터가 없으면 초기화
+                console.log('ℹ️ 실시결과 데이터가 없어서 초기화합니다.');
+                this.initializeResultForm();
+                this.initializeSketchForm();
+            }
+            
+        } catch (error) {
+            console.error('실시결과 데이터 자동 조회 오류:', error);
+            // 오류 발생 시에도 초기화
+            this.initializeResultForm();
+            this.initializeSketchForm();
+        }
+    }
+
     // 회차 필드 업데이트
     updateSessionField(value) {
         const selectElement = document.getElementById('sessionSelect');
@@ -2448,11 +2488,16 @@ class SeminarPlanningApp {
             inputElement.classList.add('hidden');
             this.currentData.session = '';
         }
+        
+        // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
+        this.checkAndLoadResultData();
     }
 
     // 회차 직접 입력 값 업데이트
     updateSessionValue(value) {
         this.currentData.session = value;
+        // 회차와 일시가 모두 입력되면 실시결과 데이터 자동 조회
+        this.checkAndLoadResultData();
     }
 
     // 회차 필드 데이터 채우기
