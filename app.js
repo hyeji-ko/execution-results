@@ -2347,6 +2347,12 @@ class SeminarPlanningApp {
         // 테이블 입력 필드 초기화
         this.clearTableInputs();
         
+        // 실시결과 입력 항목 초기화
+        this.clearResultInputs();
+        
+        // 세미나 스케치 업로드 항목 초기화
+        this.clearSketchInputs();
+        
         // 현재 데이터의 입력 필드 값만 초기화 (저장된 데이터는 유지)
         this.currentData.session = '';
         this.currentData.objective = '';
@@ -2368,6 +2374,75 @@ class SeminarPlanningApp {
         // 현재 데이터의 테이블 데이터도 초기화
         this.currentData.timeSchedule = [];
         this.currentData.attendeeList = [];
+    }
+    
+    // 실시결과 입력 항목 초기화
+    clearResultInputs() {
+        // 주요 내용 초기화
+        const mainContentElement = document.getElementById('mainResultContent');
+        if (mainContentElement) {
+            mainContentElement.value = '';
+        }
+        
+        // 향후 계획 초기화
+        const futurePlanElement = document.getElementById('mainResultFuturePlan');
+        if (futurePlanElement) {
+            futurePlanElement.value = '';
+        }
+        
+        // PDF 실시결과 내보내기 버튼 숨기기
+        this.toggleExportResultPDFButton();
+    }
+    
+    // 세미나 스케치 업로드 항목 초기화
+    clearSketchInputs() {
+        // 스케치 1 초기화
+        this.clearSketchInput(1);
+        
+        // 스케치 2 초기화
+        this.clearSketchInput(2);
+        
+        // 스케치 빠른 저장 버튼 상태 업데이트
+        this.toggleQuickSaveSketchButton();
+    }
+    
+    // 개별 스케치 입력 초기화
+    clearSketchInput(sketchNumber) {
+        // 스케치 제목 초기화
+        const titleElement = document.getElementById(`mainSketchTitle${sketchNumber}`);
+        if (titleElement) {
+            titleElement.value = '';
+        }
+        
+        // 스케치 파일 초기화
+        const fileElement = document.getElementById(`mainSketchFile${sketchNumber}`);
+        if (fileElement) {
+            fileElement.value = '';
+        }
+        
+        // 파일 미리보기 숨기기
+        const previewElement = document.getElementById(`mainFilePreview${sketchNumber}`);
+        if (previewElement) {
+            previewElement.classList.add('hidden');
+        }
+        
+        // 파일 업로드 영역 표시
+        const uploadAreaElement = document.getElementById(`mainFileUploadArea${sketchNumber}`);
+        if (uploadAreaElement) {
+            uploadAreaElement.classList.remove('hidden');
+        }
+        
+        // 미리보기 이미지 초기화
+        const previewImageElement = document.getElementById(`mainPreviewImage${sketchNumber}`);
+        if (previewImageElement) {
+            previewImageElement.src = '';
+        }
+        
+        // 파일명 초기화
+        const fileNameElement = document.getElementById(`mainFileName${sketchNumber}`);
+        if (fileNameElement) {
+            fileNameElement.textContent = '';
+        }
     }
 
     // 모바일 호환성을 위한 헬퍼 메서드들
