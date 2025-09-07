@@ -116,16 +116,17 @@ class SeminarPlanningApp {
         document.getElementById('resetBtn').addEventListener('click', () => this.resetForm());
         
         // 저장 버튼
-         document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
+        document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
         
-        // 삭제 버튼 
-         document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
+        // 삭제 버튼
+        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
         
         // 일괄삭제 버튼
         //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
         
         // 조회 버튼
-         document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
+        document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
+        
         
         // 시간 계획 행 추가
         document.getElementById('addTimeRow').addEventListener('click', () => this.addTimeRow());
@@ -4425,31 +4426,31 @@ class SeminarPlanningApp {
             // □ 로 시작하는 경우 (공백 포함)
             if (trimmedLine.startsWith('□ ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`\n  □ ${content}`);
+                result.push(`  □ ${content}`);
             }
             // - 로 시작하는 경우 (공백 포함)
             else if (trimmedLine.startsWith('- ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`\n  - ${content}`);
+                result.push(`      - ${content}`);
             }
             // □ 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('□')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`\n  □ ${content}`);
+                result.push(`  □ ${content}`);
             }
             // - 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('-')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`\n  - ${content}`);
+                result.push(`      - ${content}`);
             }
             // 일반 텍스트인 경우
             else {
-                result.push(`  ${trimmedLine}`);
+                result.push(`  □ ${trimmedLine}`);
             }
         }
         
         console.log('파싱 결과:', result);
-        return result.join('');
+        return result.join('\n');
     }
 
     // 참석자 데이터 가져오기
