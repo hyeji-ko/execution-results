@@ -132,6 +132,14 @@ class SeminarPlanningApp {
         // 참석전체 Y 처리 버튼
         document.getElementById('selectAllAttendees').addEventListener('click', () => this.selectAllAttendees());
         
+        // 빠른 저장 버튼들
+        document.getElementById('quickSaveBtn').addEventListener('click', () => this.saveData());
+        document.getElementById('quickSaveResultBtn').addEventListener('click', () => this.saveMainResultData());
+        
+        // 실시결과 내용 변경 시 빠른 저장 버튼 상태 업데이트
+        document.getElementById('mainResultContent').addEventListener('input', () => this.toggleQuickSaveButtons());
+        document.getElementById('mainResultFuturePlan').addEventListener('input', () => this.toggleQuickSaveButtons());
+        
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
         document.getElementById('exportResultPDF').addEventListener('click', () => this.exportResultToPDF());
@@ -233,6 +241,22 @@ class SeminarPlanningApp {
                 exportResultPDFButton.style.display = 'flex';
             } else {
                 exportResultPDFButton.style.display = 'none';
+            }
+        }
+    }
+    
+    // 빠른 저장 버튼 상태 관리
+    toggleQuickSaveButtons() {
+        const mainContentElement = document.getElementById('mainResultContent');
+        const quickSaveResultBtn = document.getElementById('quickSaveResultBtn');
+        
+        if (mainContentElement && quickSaveResultBtn) {
+            const hasContent = mainContentElement.value.trim().length > 0;
+            
+            if (hasContent) {
+                quickSaveResultBtn.style.display = 'flex';
+            } else {
+                quickSaveResultBtn.style.display = 'none';
             }
         }
     }
@@ -391,6 +415,9 @@ class SeminarPlanningApp {
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
+        
+        // 빠른 저장 버튼 상태 초기화
+        this.toggleQuickSaveButtons();
         
         console.log('populateForm 완료');
     }
