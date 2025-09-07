@@ -944,15 +944,20 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 안전한 focus 처리 - DOM 업데이트 후 실행
-                    setTimeout(() => {
-                        try {
-                            customInput.focus();
-                        } catch (error) {
-                            console.warn('직급 직접입력 필드 focus 오류:', error);
-                            // focus 실패해도 기능은 정상 작동
-                        }
-                    }, 10);
+                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            try {
+                                // Selection API 상태 확인 후 focus
+                                if (document.activeElement !== customInput) {
+                                    customInput.focus();
+                                }
+                            } catch (error) {
+                                console.warn('직급 직접입력 필드 focus 오류:', error);
+                                // focus 실패해도 기능은 정상 작동
+                            }
+                        });
+                    });
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -969,15 +974,20 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 안전한 focus 처리 - DOM 업데이트 후 실행
-                    setTimeout(() => {
-                        try {
-                            customInput.focus();
-                        } catch (error) {
-                            console.warn('소속 직접입력 필드 focus 오류:', error);
-                            // focus 실패해도 기능은 정상 작동
-                        }
-                    }, 10);
+                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            try {
+                                // Selection API 상태 확인 후 focus
+                                if (document.activeElement !== customInput) {
+                                    customInput.focus();
+                                }
+                            } catch (error) {
+                                console.warn('소속 직접입력 필드 focus 오류:', error);
+                                // focus 실패해도 기능은 정상 작동
+                            }
+                        });
+                    });
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -994,15 +1004,20 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 안전한 focus 처리 - DOM 업데이트 후 실행
-                    setTimeout(() => {
-                        try {
-                            customInput.focus();
-                        } catch (error) {
-                            console.warn('업무 직접입력 필드 focus 오류:', error);
-                            // focus 실패해도 기능은 정상 작동
-                        }
-                    }, 10);
+                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            try {
+                                // Selection API 상태 확인 후 focus
+                                if (document.activeElement !== customInput) {
+                                    customInput.focus();
+                                }
+                            } catch (error) {
+                                console.warn('업무 직접입력 필드 focus 오류:', error);
+                                // focus 실패해도 기능은 정상 작동
+                            }
+                        });
+                    });
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
