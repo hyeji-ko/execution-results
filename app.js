@@ -1916,11 +1916,27 @@ class SeminarPlanningApp {
                     attendees: this.ensureStringValue(item.attendees)
                 }));
                 
-                // 일시를 키값으로 내림차순 정렬
+                // 회차_일시를 키값으로 내림차순 정렬
                 const sortedData = normalizedData.sort((a, b) => {
+                    // 회차에서 숫자 추출 (예: "제 3회" -> 3, "제 4회" -> 4)
+                    const getSessionNumber = (session) => {
+                        if (!session) return 0;
+                        const match = session.match(/제\s*(\d+)회/);
+                        return match ? parseInt(match[1]) : 0;
+                    };
+                    
+                    const sessionNumA = getSessionNumber(a.session);
+                    const sessionNumB = getSessionNumber(b.session);
+                    
+                    // 먼저 회차로 비교 (내림차순)
+                    if (sessionNumA !== sessionNumB) {
+                        return sessionNumB - sessionNumA;
+                    }
+                    
+                    // 회차가 같으면 일시로 비교 (내림차순)
                     const dateA = new Date(a.datetime || '1970-01-01');
                     const dateB = new Date(b.datetime || '1970-01-01');
-                    return dateB - dateA; // 내림차순 (최신 날짜가 먼저)
+                    return dateB - dateA;
                 });
                 
                 console.log('📊 조회된 데이터:', sortedData);
