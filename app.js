@@ -917,22 +917,7 @@ class SeminarPlanningApp {
             
             // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
             if (field === 'department') {
-                // 현재 활성화된 요소 찾기
-                const activeElement = document.activeElement;
-                const selectElement = activeElement.tagName === 'SELECT' ? activeElement : 
-                                    activeElement.closest('tr').querySelector('select[data-field="department"]');
-                const inputElement = document.getElementById(`departmentInput_${index}`);
-                
-                if (value === '직접입력') {
-                    if (selectElement) selectElement.style.display = 'none';
-                    if (inputElement) {
-                        inputElement.classList.remove('hidden');
-                        inputElement.focus();
-                    }
-                } else {
-                    if (selectElement) selectElement.style.display = 'block';
-                    if (inputElement) inputElement.classList.add('hidden');
-                }
+                this.toggleCustomDepartmentInput(index, value);
             }
             
             // 직급 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
@@ -955,7 +940,15 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    customInput.focus();
+                    // 안전한 focus 처리 - DOM 업데이트 후 실행
+                    setTimeout(() => {
+                        try {
+                            customInput.focus();
+                        } catch (error) {
+                            console.warn('직급 직접입력 필드 focus 오류:', error);
+                            // focus 실패해도 기능은 정상 작동
+                        }
+                    }, 10);
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -964,6 +957,31 @@ class SeminarPlanningApp {
         }
     }
     
+    // 직접입력 필드 토글 (소속용)
+    toggleCustomDepartmentInput(index, value) {
+        const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
+        if (row) {
+            const customInput = row.querySelector('input[data-field="department-custom"]');
+            if (customInput) {
+                if (value === '직접입력') {
+                    customInput.classList.remove('hidden');
+                    // 안전한 focus 처리 - DOM 업데이트 후 실행
+                    setTimeout(() => {
+                        try {
+                            customInput.focus();
+                        } catch (error) {
+                            console.warn('소속 직접입력 필드 focus 오류:', error);
+                            // focus 실패해도 기능은 정상 작동
+                        }
+                    }, 10);
+                } else {
+                    customInput.classList.add('hidden');
+                    customInput.value = '';
+                }
+            }
+        }
+    }
+
     // 직접입력 필드 토글 (업무용)
     toggleCustomWorkInput(index, value) {
         const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
@@ -972,7 +990,15 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    customInput.focus();
+                    // 안전한 focus 처리 - DOM 업데이트 후 실행
+                    setTimeout(() => {
+                        try {
+                            customInput.focus();
+                        } catch (error) {
+                            console.warn('업무 직접입력 필드 focus 오류:', error);
+                            // focus 실패해도 기능은 정상 작동
+                        }
+                    }, 10);
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -1305,7 +1331,7 @@ class SeminarPlanningApp {
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                             data-field="department"
-                            onchange="app.updateAttendeeList(${index}, 'department', this.value)">
+                            onchange="app.updateAttendeeList(${index}, 'department', this.value); app.toggleCustomDepartmentInput(${index}, this.value)">
                         <option value="">선택하세요</option>
                         <option value="SI사업본부">SI사업본부</option>
                         <option value="AI사업본부">AI사업본부</option>
@@ -4223,49 +4249,71 @@ class SeminarPlanningApp {
         }
     }
 
-    // 데이터 삭제 메서드
+    // 데이터 삭제 메서드 (세미나 계획 + 실시결과 데이터 모두 삭제)
     async deleteData() {
         try {
             // 현재 데이터가 있는지 확인
-            if (!this.currentData || !this.currentData.datetime) {
+            if (!this.currentData || !this.currentData.session || !this.currentData.datetime) {
                 this.showErrorToast('삭제할 데이터가 없습니다.');
                 return;
             }
 
+            const session = this.currentData.session;
+            const datetime = this.currentData.datetime;
+
             // 사용자에게 삭제 확인
-            if (!confirm(`정말로 "${this.currentData.datetime}" 세미나 계획을 삭제하시겠습니까?`)) {
+            if (!confirm(`정말로 "${session}" 세미나의 모든 데이터(계획 + 실시결과)를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
                 return;
             }
 
             this.showLoading(true);
 
-            // Firebase에서 데이터 삭제
-            if (this.currentDocumentId) {
-                const result = await window.deleteData(this.currentDocumentId);
-                if (result.success) {
-                    this.showSuccessToast('데이터가 성공적으로 삭제되었습니다.');
-                    
-                    // 현재 데이터 초기화
-                    this.currentData = {
-                        session: '',
-                        objective: '',
-                        datetime: '',
-                        location: '',
-                        attendees: '',
-                        timeSchedule: [],
-                        attendeeList: []
-                    };
-                    this.currentDocumentId = null;
-                    
-                    // 폼 초기화
-                    this.initializeMainForm();
+            let planDeleteSuccess = false;
+            let resultDeleteSuccess = false;
+            let errorMessages = [];
+
+            // 1. 세미나 계획 데이터 삭제
+            try {
+                if (this.currentDocumentId) {
+                    const result = await window.deleteData(this.currentDocumentId);
+                    if (result.success) {
+                        planDeleteSuccess = true;
+                        console.log('✅ 세미나 계획 데이터 삭제 성공');
+                    } else {
+                        errorMessages.push(`계획 데이터 삭제 실패: ${result.message}`);
+                    }
                 } else {
-                    this.showErrorToast(`데이터 삭제 실패: ${result.error}`);
+                    // 로컬 스토리지에서 데이터 삭제
+                    localStorage.removeItem('seminarData');
+                    planDeleteSuccess = true;
+                    console.log('✅ 로컬 스토리지 세미나 계획 데이터 삭제 성공');
                 }
-            } else {
-                // 로컬 스토리지에서 데이터 삭제
-                localStorage.removeItem('seminarData');
-                this.showSuccessToast('데이터가 성공적으로 삭제되었습니다.');
+            } catch (error) {
+                errorMessages.push(`계획 데이터 삭제 오류: ${error.message}`);
+            }
+
+            // 2. 실시결과 데이터 삭제
+            try {
+                const resultDeleteResult = await window.deleteResultData(session, datetime);
+                if (resultDeleteResult.success) {
+                    resultDeleteSuccess = true;
+                    console.log('✅ 실시결과 데이터 삭제 성공');
+                } else {
+                    // 실시결과 데이터가 없는 경우는 정상적인 상황일 수 있음
+                    if (resultDeleteResult.message.includes('찾을 수 없습니다') || resultDeleteResult.message.includes('없습니다')) {
+                        resultDeleteSuccess = true; // 데이터가 없는 것은 정상
+                        console.log('ℹ️ 실시결과 데이터가 없어서 삭제할 것이 없음');
+                    } else {
+                        errorMessages.push(`실시결과 데이터 삭제 실패: ${resultDeleteResult.message}`);
+                    }
+                }
+            } catch (error) {
+                errorMessages.push(`실시결과 데이터 삭제 오류: ${error.message}`);
+            }
+
+            // 3. 결과 처리
+            if (planDeleteSuccess && resultDeleteSuccess) {
+                this.showSuccessToast(`${session} 세미나의 모든 데이터가 성공적으로 삭제되었습니다.`);
                 
                 // 현재 데이터 초기화
                 this.currentData = {
@@ -4281,7 +4329,11 @@ class SeminarPlanningApp {
                 
                 // 폼 초기화
                 this.initializeMainForm();
+            } else {
+                const errorMessage = errorMessages.length > 0 ? errorMessages.join('\n') : '알 수 없는 오류가 발생했습니다.';
+                this.showErrorToast(`데이터 삭제 중 일부 오류가 발생했습니다:\n${errorMessage}`);
             }
+
         } catch (error) {
             console.error('데이터 삭제 오류:', error);
             this.showErrorToast(`데이터 삭제 실패: ${error.message}`);
