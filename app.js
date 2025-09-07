@@ -383,10 +383,19 @@ class SeminarPlanningApp {
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
         
-        // 스케치 정보가 있으면 표시 (loadMainResultData 후에)
-        if (this.currentData.sketches && this.currentData.sketches.length > 0) {
-            console.log('🖼️ currentData에서 스케치 정보 발견, 표시:', this.currentData.sketches);
-            this.populateMainResultForm({ sketches: this.currentData.sketches });
+        // 스케치 정보 처리 (loadMainResultData 후에)
+        if (this.currentData.sketches) {
+            if (this.currentData.sketches.length > 0) {
+                console.log('🖼️ currentData에서 스케치 정보 발견, 표시:', this.currentData.sketches);
+                this.populateMainResultForm({ sketches: this.currentData.sketches });
+            } else {
+                console.log('🖼️ currentData에 스케치 정보가 빈 배열, 스케치 UI 초기화');
+                this.populateMainResultForm({ sketches: [] });
+            }
+        } else {
+            console.log('🖼️ currentData에 sketches 필드가 없음, 빈 배열로 초기화');
+            this.currentData.sketches = [];
+            this.populateMainResultForm({ sketches: [] });
         }
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
@@ -4583,13 +4592,18 @@ class SeminarPlanningApp {
             } else {
                 console.log('ℹ️ 기존 실시결과 데이터가 없음, currentData에서 스케치 정보 확인');
                 
-                // currentData에 스케치 정보가 있으면 표시
-                if (this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0) {
-                    console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
-                    this.populateMainResultForm({ sketches: this.currentData.sketches });
+                // currentData에 스케치 정보 처리
+                if (this.currentData && this.currentData.sketches) {
+                    if (this.currentData.sketches.length > 0) {
+                        console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
+                        this.populateMainResultForm({ sketches: this.currentData.sketches });
+                    } else {
+                        console.log('ℹ️ currentData에 스케치 정보가 빈 배열, 스케치 UI 초기화');
+                        this.populateMainResultForm({ sketches: [] });
+                    }
                 } else {
-                    console.log('ℹ️ currentData에도 스케치 정보가 없음, 폼 초기화');
-                    this.clearMainResultForm();
+                    console.log('ℹ️ currentData에 sketches 필드가 없음, 빈 스케치로 초기화');
+                    this.populateMainResultForm({ sketches: [] });
                 }
             }
             
@@ -4700,9 +4714,9 @@ class SeminarPlanningApp {
                     }
                 }
             } else {
-                // 스케치가 없으면 초기화하지 않고 기존 상태 유지
-                console.log('ℹ️ 스케치 데이터가 없지만 기존 상태 유지');
-                // this.clearMainSketchFields(); // 주석 처리하여 기존 스케치 유지
+                // 스케치가 없으면 스케치 필드 초기화
+                console.log('ℹ️ 스케치 데이터가 없어서 스케치 필드 초기화');
+                this.clearMainSketchFields();
             }
             
             console.log('✅ 메인화면 폼 데이터 채우기 완료');
