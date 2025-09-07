@@ -5030,10 +5030,15 @@ class SeminarPlanningApp {
                 sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
             };
             
+            // 현재 변경사항 확인
+            const hasCurrentChanges = sketchFile1 || sketchFile2 || sketchTitle1 || sketchTitle2;
+            const hasExistingSketchData = this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0;
+            
+            // 스케치 정보가 없는 경우 공백으로 저장
             // 현재 변경사항이 없고 기존 스케치 데이터가 있는 경우, 모든 스케치를 삭제하는 것으로 간주
             // 또는 스케치 정보를 모두 지우고 저장하는 경우도 허용
-            if (!hasCurrentChanges && hasExistingSketchData) {
-                sketchData.sketches = []; // 빈 배열로 설정하여 모든 스케치 삭제
+            if (!hasCurrentChanges) {
+                sketchData.sketches = []; // 빈 배열로 설정하여 모든 스케치 삭제 또는 공백 저장
             }
             
             // 스케치 1 처리
@@ -5095,7 +5100,7 @@ class SeminarPlanningApp {
             
             if (result.success) {
                 if (sketchData.sketches.length === 0) {
-                    this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
+                    this.showSuccessToast('세미나 스케치 정보가 공백으로 저장되었습니다.');
                 } else {
                     this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
                 }
