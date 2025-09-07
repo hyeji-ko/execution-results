@@ -1848,7 +1848,16 @@ class SeminarPlanningApp {
 
     collectFormData() {
         // 기본 정보 수집
-        this.currentData.session = this.currentData.session || '';
+        // 회차 값 올바르게 가져오기
+        const sessionSelect = document.getElementById('sessionSelect');
+        const sessionInput = document.getElementById('sessionInput');
+        
+        if (sessionSelect.value === '직접입력') {
+            this.currentData.session = sessionInput.value;
+        } else {
+            this.currentData.session = sessionSelect.value;
+        }
+        
         this.currentData.objective = document.getElementById('objective').value;
         this.currentData.datetime = document.getElementById('datetime').value;
         this.currentData.location = document.getElementById('location').value;
@@ -2431,6 +2440,13 @@ class SeminarPlanningApp {
             }
             
             console.log(`🔍 실시결과 데이터 자동 조회 시작: ${session}_${datetime}`);
+            console.log('🔍 checkAndLoadResultData - currentData 상태:', {
+                session: this.currentData.session,
+                datetime: this.currentData.datetime,
+                sessionSelectValue: document.getElementById('sessionSelect').value,
+                sessionInputValue: document.getElementById('sessionInput').value,
+                datetimeValue: document.getElementById('datetime').value
+            });
             
             // 실시결과 데이터 조회
             const resultData = await window.loadResultDataByKey(session, datetime);
@@ -4960,10 +4976,25 @@ class SeminarPlanningApp {
     // 메인화면 실시결과 데이터 로드
     async loadMainResultData() {
         try {
-            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            // 회차 값 올바르게 가져오기
+            const sessionSelect = document.getElementById('sessionSelect');
+            const sessionInput = document.getElementById('sessionInput');
+            let session = '';
+            
+            if (sessionSelect.value === '직접입력') {
+                session = sessionInput.value;
+            } else {
+                session = sessionSelect.value;
+            }
+            
             const datetime = document.getElementById('datetime').value;
             
-            console.log('🔍 메인화면 실시결과 데이터 로드 시도:', { session, datetime });
+            console.log('🔍 메인화면 실시결과 데이터 로드 시도:', { 
+                sessionSelectValue: sessionSelect.value, 
+                sessionInputValue: sessionInput.value,
+                finalSession: session, 
+                datetime 
+            });
             
             // 세미나 정보가 없어도 currentData에서 스케치 정보를 확인
             if (!session || !datetime) {
