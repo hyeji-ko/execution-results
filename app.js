@@ -155,7 +155,7 @@ class SeminarPlanningApp {
         document.getElementById('mainFileUploadArea2').addEventListener('click', () => document.getElementById('mainSketchFile2').click());
         
         // 메인화면 실시결과 저장 버튼
-        document.getElementById('saveMainResultBtn').addEventListener('click', () => this.saveMainResultData());
+        //document.getElementById('saveMainResultBtn').addEventListener('click', () => this.saveMainResultData());
              
         // 입력 필드 변경 감지
         this.bindInputEvents();
