@@ -2440,6 +2440,10 @@ class SeminarPlanningApp {
                 this.initializeSketchForm();
             }
             
+            // 회차_일시 변경 시에는 항상 스케치 정보 클리어 (실행계획은 유지)
+            console.log('🔄 회차_일시 변경으로 인한 스케치 정보 클리어');
+            this.initializeSketchForm();
+            
         } catch (error) {
             console.error('실시결과 데이터 자동 조회 오류:', error);
             // 오류 발생 시에도 초기화
