@@ -2,7 +2,7 @@
 // 실제 프로젝트에서는 Firebase 콘솔에서 가져온 설정을 사용해야 합니다.
 
 // Firebase를 기본 저장소로 사용
-const useLocalStorage = false; // Firebase 사용
+const useLocalStorage = true; // 임시로 로컬 스토리지 사용 (Firebase 연결 문제 해결 전까지)
 
 const firebaseConfig = {
     apiKey: "AIzaSyDorTHDMuGf-Ghinx3-vYD-NVz_nXk-J6I",
@@ -264,12 +264,17 @@ async function updateData(id, data) {
             }
         } else {
             // Firebase 업데이트
-            await db.collection('seminarPlans').doc(id).update({
-                ...data,
-                sketches: data.sketches || [], // sketches 필드 추가
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            return { success: true, message: 'Firebase가 업데이트되었습니다.' };
+            try {
+                await db.collection('seminarPlans').doc(id).update({
+                    ...data,
+                    sketches: data.sketches || [], // sketches 필드 추가
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                return { success: true, message: 'Firebase가 업데이트되었습니다.' };
+            } catch (firebaseError) {
+                console.error('Firebase 업데이트 오류:', firebaseError);
+                return { success: false, message: 'Firebase 업데이트 중 오류가 발생했습니다: ' + firebaseError.message };
+            }
         }
     } catch (error) {
         console.error('데이터 업데이트 오류:', error);
@@ -372,6 +377,20 @@ function checkFirebaseStatus() {
         try {
             const app = firebase.app();
             console.log('Firebase 앱이 정상적으로 초기화되었습니다:', app.name);
+            
+            // Firestore 연결 상태 확인
+            const db = firebase.firestore();
+            console.log('Firestore 데이터베이스 참조 생성됨');
+            
+            // 연결 테스트
+            db.collection('test').limit(1).get()
+                .then(() => {
+                    console.log('✅ Firestore 연결 테스트 성공');
+                })
+                .catch((error) => {
+                    console.error('❌ Firestore 연결 테스트 실패:', error);
+                });
+            
             return true;
         } catch (error) {
             console.error('Firebase 초기화 오류:', error);
