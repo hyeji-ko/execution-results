@@ -135,10 +135,17 @@ class SeminarPlanningApp {
         // 빠른 저장 버튼들
         document.getElementById('quickSaveBtn').addEventListener('click', () => this.saveData());
         document.getElementById('quickSaveResultBtn').addEventListener('click', () => this.saveMainResultData());
+        document.getElementById('quickSaveSketchBtn').addEventListener('click', () => this.saveSketchData());
         
         // 실시결과 내용 변경 시 빠른 저장 버튼 상태 업데이트
         document.getElementById('mainResultContent').addEventListener('input', () => this.toggleQuickSaveButtons());
         document.getElementById('mainResultFuturePlan').addEventListener('input', () => this.toggleQuickSaveButtons());
+        
+        // 스케치 정보 변경 시 빠른 저장 버튼 상태 업데이트
+        document.getElementById('mainSketchTitle1').addEventListener('input', () => this.toggleQuickSaveSketchButton());
+        document.getElementById('mainSketchTitle2').addEventListener('input', () => this.toggleQuickSaveSketchButton());
+        document.getElementById('mainSketchFile1').addEventListener('change', () => this.toggleQuickSaveSketchButton());
+        document.getElementById('mainSketchFile2').addEventListener('change', () => this.toggleQuickSaveSketchButton());
         
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
@@ -259,6 +266,36 @@ class SeminarPlanningApp {
                 quickSaveResultBtn.style.display = 'none';
             }
         }
+    }
+    
+    // 스케치 빠른 저장 버튼 상태 관리
+    toggleQuickSaveSketchButton() {
+        const quickSaveSketchBtn = document.getElementById('quickSaveSketchBtn');
+        
+        if (quickSaveSketchBtn) {
+            // 스케치 정보가 변경되었는지 확인
+            const hasSketchChanges = this.hasSketchChanges();
+            
+            if (hasSketchChanges) {
+                quickSaveSketchBtn.style.display = 'flex';
+            } else {
+                quickSaveSketchBtn.style.display = 'none';
+            }
+        }
+    }
+    
+    // 스케치 정보 변경 여부 확인
+    hasSketchChanges() {
+        // 스케치 1 확인
+        const title1 = document.getElementById('mainSketchTitle1').value.trim();
+        const file1 = document.getElementById('mainSketchFile1').files[0];
+        
+        // 스케치 2 확인
+        const title2 = document.getElementById('mainSketchTitle2').value.trim();
+        const file2 = document.getElementById('mainSketchFile2').files[0];
+        
+        // 제목이나 파일이 있으면 변경된 것으로 간주
+        return (title1.length > 0 || file1) || (title2.length > 0 || file2);
     }
     
     // 일시 형식 검증
@@ -4478,6 +4515,9 @@ class SeminarPlanningApp {
                 document.getElementById(`mainFileName${sketchNumber}`).textContent = file.name;
                 document.getElementById(`mainFilePreview${sketchNumber}`).classList.remove('hidden');
                 document.getElementById(`mainFileUploadArea${sketchNumber}`).classList.add('hidden');
+                
+                // 스케치 빠른 저장 버튼 상태 업데이트
+                this.toggleQuickSaveSketchButton();
             };
             reader.readAsDataURL(file);
         }
@@ -4488,6 +4528,9 @@ class SeminarPlanningApp {
         document.getElementById(`mainSketchFile${sketchNumber}`).value = '';
         document.getElementById(`mainFilePreview${sketchNumber}`).classList.add('hidden');
         document.getElementById(`mainFileUploadArea${sketchNumber}`).classList.remove('hidden');
+        
+        // 스케치 빠른 저장 버튼 상태 업데이트
+        this.toggleQuickSaveSketchButton();
     }
 
     // 메인화면 스케치 파일 다운로드
@@ -4884,6 +4927,119 @@ class SeminarPlanningApp {
             if (!skipLoading) {
                 this.showLoading(false);
             }
+        }
+    }
+    
+    // 스케치 정보만 저장하는 함수
+    async saveSketchData() {
+        try {
+            this.showLoading(true);
+            
+            // 현재 세미나 정보 가져오기
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                this.showErrorToast('먼저 세미나 정보를 입력해주세요.');
+                this.showLoading(false);
+                return;
+            }
+            
+            // 스케치 1 정보
+            const sketchTitle1 = document.getElementById('mainSketchTitle1').value.trim();
+            const sketchFile1 = document.getElementById('mainSketchFile1').files[0];
+            
+            // 스케치 2 정보
+            const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
+            const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
+            
+            // 스케치 정보가 있는지 확인
+            if (!sketchFile1 && !sketchFile2 && !sketchTitle1 && !sketchTitle2) {
+                this.showErrorToast('저장할 스케치 정보가 없습니다.');
+                this.showLoading(false);
+                return;
+            }
+            
+            // 기존 실시결과 데이터 조회
+            const existingResult = await loadResultDataByKey(session, datetime);
+            
+            // 스케치 데이터만 구성
+            const sketchData = {
+                session: session,
+                datetime: datetime,
+                sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
+            };
+            
+            // 스케치 1 처리
+            if (sketchFile1) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile1, '');
+                if (uploadResult.success) {
+                    const sketch1Data = {
+                        title: sketchTitle1,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile1.name
+                    };
+                    // 기존 스케치 1이 있으면 교체, 없으면 추가
+                    if (sketchData.sketches.length > 0) {
+                        sketchData.sketches[0] = sketch1Data;
+                    } else {
+                        sketchData.sketches.push(sketch1Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 1 업로드 실패: ${uploadResult.message}`);
+                    this.showLoading(false);
+                    return;
+                }
+            } else if (sketchTitle1 && sketchData.sketches.length > 0) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 1의 제목만 업데이트)
+                sketchData.sketches[0].title = sketchTitle1;
+            }
+            
+            // 스케치 2 처리
+            if (sketchFile2) {
+                // 새 파일이 업로드된 경우
+                const uploadResult = await uploadImage(sketchFile2, '');
+                if (uploadResult.success) {
+                    const sketch2Data = {
+                        title: sketchTitle2,
+                        imageData: uploadResult.url,
+                        fileName: sketchFile2.name
+                    };
+                    // 기존 스케치 2가 있으면 교체, 없으면 추가
+                    if (sketchData.sketches.length > 1) {
+                        sketchData.sketches[1] = sketch2Data;
+                    } else if (sketchData.sketches.length === 1) {
+                        sketchData.sketches.push(sketch2Data);
+                    } else {
+                        sketchData.sketches.push(sketch2Data);
+                    }
+                } else {
+                    this.showErrorToast(`스케치 2 업로드 실패: ${uploadResult.message}`);
+                    this.showLoading(false);
+                    return;
+                }
+            } else if (sketchTitle2 && sketchData.sketches.length > 1) {
+                // 새 파일은 없지만 제목이 변경된 경우 (기존 스케치 2의 제목만 업데이트)
+                sketchData.sketches[1].title = sketchTitle2;
+            }
+            
+            // 스케치 데이터만 저장
+            const result = await saveResultData(sketchData);
+            
+            if (result.success) {
+                this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
+                // 스케치 저장 후 버튼 숨기기
+                this.toggleQuickSaveSketchButton();
+            } else {
+                this.showErrorToast(result.message);
+            }
+            
+        } catch (error) {
+            console.error('스케치 저장 오류:', error);
+            this.showErrorToast('스케치 저장 중 오류가 발생했습니다.');
+        } finally {
+            this.showLoading(false);
         }
     }
 
