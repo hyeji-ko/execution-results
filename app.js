@@ -2868,6 +2868,7 @@ class SeminarPlanningApp {
             word-wrap: break-word;
             overflow-wrap: break-word;
             font-size: 12px;
+            white-space: pre-line;
         }
         table {
             width: 100%;
@@ -5203,6 +5204,7 @@ class SeminarPlanningApp {
                         word-wrap: break-word;
                         overflow-wrap: break-word;
                         font-size: 12px;
+                        white-space: pre-line;
                     }
                     table {
                         width: 100%;
@@ -5282,10 +5284,10 @@ class SeminarPlanningApp {
                     <p class="info-content">&nbsp;&nbsp;□ 참석 인력: ${safeText(attendeeTarget)}</p>
                     
                     <h2>2. 주요 내용</h2>
-                    <p class="info-content">${safeText(this.parseMainContent(resultData.mainContent))}</p>
+                    <p class="info-content" style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.mainContent))}</p>
                     
                     <h2>3. 향후 계획</h2>
-                    <p class="info-content">${safeText(this.parseMainContent(resultData.futurePlan))}</p>
+                    <p class="info-content" style="white-space: pre-line;">${safeText(this.parseMainContent(resultData.futurePlan))}</p>
                 </div> 
                 
                 ${attendeeTableHTML}
