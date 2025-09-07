@@ -2382,6 +2382,53 @@ class SeminarPlanningApp {
         this.toggleExportResultPDFButton();
     }
 
+    // 실시결과 폼 초기화
+    initializeResultForm() {
+        // 실시결과 입력 필드 초기화
+        const mainResultContent = document.getElementById('mainResultContent');
+        const mainResultFuturePlan = document.getElementById('mainResultFuturePlan');
+        
+        if (mainResultContent) {
+            mainResultContent.value = '';
+        }
+        if (mainResultFuturePlan) {
+            mainResultFuturePlan.value = '';
+        }
+        
+        console.log('✅ 실시결과 폼 초기화 완료');
+    }
+
+    // 스케치 폼 초기화
+    initializeSketchForm() {
+        // 스케치 1 초기화
+        const sketchTitle1 = document.getElementById('mainSketchTitle1');
+        const sketchFile1 = document.getElementById('mainSketchFile1');
+        const filePreview1 = document.getElementById('mainFilePreview1');
+        const previewImage1 = document.getElementById('mainPreviewImage1');
+        const fileName1 = document.getElementById('mainFileName1');
+        
+        if (sketchTitle1) sketchTitle1.value = '';
+        if (sketchFile1) sketchFile1.value = '';
+        if (filePreview1) filePreview1.classList.add('hidden');
+        if (previewImage1) previewImage1.src = '';
+        if (fileName1) fileName1.textContent = '';
+        
+        // 스케치 2 초기화
+        const sketchTitle2 = document.getElementById('mainSketchTitle2');
+        const sketchFile2 = document.getElementById('mainSketchFile2');
+        const filePreview2 = document.getElementById('mainFilePreview2');
+        const previewImage2 = document.getElementById('mainPreviewImage2');
+        const fileName2 = document.getElementById('mainFileName2');
+        
+        if (sketchTitle2) sketchTitle2.value = '';
+        if (sketchFile2) sketchFile2.value = '';
+        if (filePreview2) filePreview2.classList.add('hidden');
+        if (previewImage2) previewImage2.src = '';
+        if (fileName2) fileName2.textContent = '';
+        
+        console.log('✅ 스케치 폼 초기화 완료');
+    }
+
     // 회차 필드 업데이트
     updateSessionField(value) {
         const selectElement = document.getElementById('sessionSelect');
@@ -4329,6 +4376,12 @@ class SeminarPlanningApp {
                 
                 // 폼 초기화
                 this.initializeMainForm();
+                
+                // 실시결과 폼 초기화
+                this.initializeResultForm();
+                
+                // 스케치 폼 초기화
+                this.initializeSketchForm();
             } else {
                 const errorMessage = errorMessages.length > 0 ? errorMessages.join('\n') : '알 수 없는 오류가 발생했습니다.';
                 this.showErrorToast(`데이터 삭제 중 일부 오류가 발생했습니다:\n${errorMessage}`);
