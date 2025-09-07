@@ -21,6 +21,10 @@ class SeminarPlanningApp {
     }
     
     async initializeApp() {
+        // 먼저 이벤트 리스너를 등록하여 버튼이 즉시 작동하도록 함
+        this.bindEvents();
+        
+        // 그 다음 라이브러리 확인 및 나머지 초기화
         await this.checkLibraries();
         await this.init();
     }
@@ -101,7 +105,7 @@ class SeminarPlanningApp {
     }
 
     async init() {
-        this.bindEvents();
+        // bindEvents()는 이미 initializeApp()에서 호출됨
         await this.loadInitialData();
         this.addDefaultRows();
         
@@ -112,20 +116,55 @@ class SeminarPlanningApp {
     }
 
     bindEvents() {
+        console.log('🔗 이벤트 리스너 등록 시작');
+        
         // 초기화 버튼
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetForm());
+        const resetBtn = document.getElementById('resetBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.resetForm());
+            console.log('✅ 초기화 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 초기화 버튼을 찾을 수 없습니다');
+        }
         
         // 저장 버튼
-        document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
+        const saveBtn = document.getElementById('saveBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                console.log('💾 저장 버튼 클릭됨');
+                this.saveData();
+            });
+            console.log('✅ 저장 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 저장 버튼을 찾을 수 없습니다');
+        }
         
         // 삭제 버튼
-        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
+        const deleteBtn = document.getElementById('deleteBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                console.log('🗑️ 삭제 버튼 클릭됨');
+                this.deleteData();
+            });
+            console.log('✅ 삭제 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 삭제 버튼을 찾을 수 없습니다');
+        }
         
         // 일괄삭제 버튼
         //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
         
         // 조회 버튼
-        document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
+        const loadBtn = document.getElementById('loadBtn');
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => {
+                console.log('🔍 조회 버튼 클릭됨');
+                this.showSearchModal();
+            });
+            console.log('✅ 조회 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 조회 버튼을 찾을 수 없습니다');
+        }
         
         
         // 시간 계획 행 추가
@@ -327,22 +366,49 @@ class SeminarPlanningApp {
         try {
             console.log('loadInitialData 시작');
             
-            // loadData 함수가 정의되어 있는지 확인
-            if (typeof window.loadData !== 'function') {
-                console.warn('loadData 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
+            // loadAllPlans 함수가 정의되어 있는지 확인
+            if (typeof window.loadAllPlans !== 'function') {
+                console.warn('loadAllPlans 함수가 정의되지 않았습니다. firebase-config.js가 로드되었는지 확인하세요.');
                 return;
             }
             
-            // Firebase에서 저장된 데이터 불러오기
-            console.log('Firebase에서 데이터 로드 시작...');
-            const result = await window.loadData();
-            console.log('Firebase 로드 결과:', result);
+            // 모든 세미나 데이터 불러오기
+            console.log('모든 세미나 데이터 로드 시작...');
+            const result = await window.loadAllPlans();
+            console.log('전체 데이터 로드 결과:', result);
             
-            if (result.success) {
-                // Firebase에서 가져온 데이터에서 id 필드 제거
-                const { id, ...dataWithoutId } = result.data;
+            if (result.success && result.data && result.data.length > 0) {
+                // 회차_일시를 키값으로 내림차순 정렬
+                const sortedData = result.data.sort((a, b) => {
+                    // 회차에서 숫자 추출 (예: "제 3회" -> 3, "제 4회" -> 4)
+                    const getSessionNumber = (session) => {
+                        if (!session) return 0;
+                        const match = session.match(/제\s*(\d+)회/);
+                        return match ? parseInt(match[1]) : 0;
+                    };
+                    
+                    const sessionNumA = getSessionNumber(a.session);
+                    const sessionNumB = getSessionNumber(b.session);
+                    
+                    // 먼저 회차로 비교 (내림차순)
+                    if (sessionNumA !== sessionNumB) {
+                        return sessionNumB - sessionNumA;
+                    }
+                    
+                    // 회차가 같으면 일시로 비교 (내림차순)
+                    const dateA = new Date(a.datetime || '1970-01-01');
+                    const dateB = new Date(b.datetime || '1970-01-01');
+                    return dateB - dateA;
+                });
+                
+                // 첫 번째 데이터 (최신 데이터) 로드
+                const latestData = sortedData[0];
+                console.log('최신 데이터 로드:', latestData);
+                
+                // 데이터에서 id 필드 제거
+                const { id, ...dataWithoutId } = latestData;
                 this.currentData = dataWithoutId;
-                this.currentDocumentId = result.id; // Firebase 문서 ID 저장
+                this.currentDocumentId = id; // Firebase 문서 ID 저장
                 console.log('currentData 설정 완료:', this.currentData);
                 console.log('currentDocumentId:', this.currentDocumentId);
                 console.log('timeSchedule 원본 데이터:', this.currentData.timeSchedule);
@@ -362,7 +428,12 @@ class SeminarPlanningApp {
                 await this.populateForm();
                 console.log('populateForm 호출 완료');
                 
-                console.log('Firebase에서 데이터를 성공적으로 불러왔습니다.');
+                // 실시결과 데이터도 자동으로 로드
+                console.log('실시결과 데이터 자동 로드 시작...');
+                await this.loadMainResultData();
+                console.log('실시결과 데이터 자동 로드 완료');
+                
+                console.log('최신 세미나 데이터를 성공적으로 불러왔습니다.');
             } else {
                 console.log('저장된 데이터가 없습니다:', result.message);
             }
