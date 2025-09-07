@@ -127,43 +127,74 @@ class SeminarPlanningApp {
             console.error('❌ 초기화 버튼을 찾을 수 없습니다');
         }
         
-        // 저장 버튼
-        const saveBtn = document.getElementById('saveBtn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => {
-                console.log('💾 저장 버튼 클릭됨');
+        // 최상위 저장 버튼 (헤더의 저장 버튼)
+        const headerSaveBtn = document.querySelector('header button[id="saveBtn"]');
+        if (headerSaveBtn) {
+            headerSaveBtn.addEventListener('click', () => {
+                console.log('💾 최상위 저장 버튼 클릭됨');
                 this.saveData();
             });
-            console.log('✅ 저장 버튼 이벤트 리스너 등록 완료');
+            console.log('✅ 최상위 저장 버튼 이벤트 리스너 등록 완료');
         } else {
-            console.error('❌ 저장 버튼을 찾을 수 없습니다');
+            console.error('❌ 최상위 저장 버튼을 찾을 수 없습니다');
         }
         
-        // 삭제 버튼
-        const deleteBtn = document.getElementById('deleteBtn');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => {
-                console.log('🗑️ 삭제 버튼 클릭됨');
+        // 최상위 삭제 버튼 (헤더의 삭제 버튼)
+        const headerDeleteBtn = document.querySelector('header button[id="deleteBtn"]');
+        if (headerDeleteBtn) {
+            headerDeleteBtn.addEventListener('click', () => {
+                console.log('🗑️ 최상위 삭제 버튼 클릭됨');
                 this.deleteData();
             });
-            console.log('✅ 삭제 버튼 이벤트 리스너 등록 완료');
+            console.log('✅ 최상위 삭제 버튼 이벤트 리스너 등록 완료');
         } else {
-            console.error('❌ 삭제 버튼을 찾을 수 없습니다');
+            console.error('❌ 최상위 삭제 버튼을 찾을 수 없습니다');
         }
         
-        // 일괄삭제 버튼
-        //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
-        
-        // 조회 버튼
-        const loadBtn = document.getElementById('loadBtn');
-        if (loadBtn) {
-            loadBtn.addEventListener('click', () => {
-                console.log('🔍 조회 버튼 클릭됨');
+        // 최상위 조회 버튼 (헤더의 조회 버튼)
+        const headerLoadBtn = document.querySelector('header button[id="loadBtn"]');
+        if (headerLoadBtn) {
+            headerLoadBtn.addEventListener('click', () => {
+                console.log('🔍 최상위 조회 버튼 클릭됨');
                 this.showSearchModal();
             });
-            console.log('✅ 조회 버튼 이벤트 리스너 등록 완료');
+            console.log('✅ 최상위 조회 버튼 이벤트 리스너 등록 완료');
         } else {
-            console.error('❌ 조회 버튼을 찾을 수 없습니다');
+            console.error('❌ 최상위 조회 버튼을 찾을 수 없습니다');
+        }
+        
+        // 세미나 데이터 관리 섹션의 버튼들 - 최상위 버튼을 클릭하도록 연결
+        const managementSaveBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="saveBtn"]');
+        if (managementSaveBtn) {
+            managementSaveBtn.addEventListener('click', () => {
+                console.log('💾 세미나 데이터 관리 저장 버튼 클릭됨 - 최상위 버튼 트리거');
+                headerSaveBtn.click();
+            });
+            console.log('✅ 세미나 데이터 관리 저장 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 세미나 데이터 관리 저장 버튼을 찾을 수 없습니다');
+        }
+        
+        const managementDeleteBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="deleteBtn"]');
+        if (managementDeleteBtn) {
+            managementDeleteBtn.addEventListener('click', () => {
+                console.log('🗑️ 세미나 데이터 관리 삭제 버튼 클릭됨 - 최상위 버튼 트리거');
+                headerDeleteBtn.click();
+            });
+            console.log('✅ 세미나 데이터 관리 삭제 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 세미나 데이터 관리 삭제 버튼을 찾을 수 없습니다');
+        }
+        
+        const managementLoadBtn = document.querySelector('.bg-white.rounded-xl.shadow-lg.p-6.mb-8 button[id="loadBtn"]');
+        if (managementLoadBtn) {
+            managementLoadBtn.addEventListener('click', () => {
+                console.log('🔍 세미나 데이터 관리 조회 버튼 클릭됨 - 최상위 버튼 트리거');
+                headerLoadBtn.click();
+            });
+            console.log('✅ 세미나 데이터 관리 조회 버튼 이벤트 리스너 등록 완료');
+        } else {
+            console.error('❌ 세미나 데이터 관리 조회 버튼을 찾을 수 없습니다');
         }
         
         
