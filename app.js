@@ -944,20 +944,8 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            try {
-                                // Selection API 상태 확인 후 focus
-                                if (document.activeElement !== customInput) {
-                                    customInput.focus();
-                                }
-                            } catch (error) {
-                                console.warn('직급 직접입력 필드 focus 오류:', error);
-                                // focus 실패해도 기능은 정상 작동
-                            }
-                        });
-                    });
+                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
+                    console.log('직급 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -974,20 +962,8 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            try {
-                                // Selection API 상태 확인 후 focus
-                                if (document.activeElement !== customInput) {
-                                    customInput.focus();
-                                }
-                            } catch (error) {
-                                console.warn('소속 직접입력 필드 focus 오류:', error);
-                                // focus 실패해도 기능은 정상 작동
-                            }
-                        });
-                    });
+                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
+                    console.log('소속 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
@@ -1004,20 +980,8 @@ class SeminarPlanningApp {
             if (customInput) {
                 if (value === '직접입력') {
                     customInput.classList.remove('hidden');
-                    // 더 안전한 focus 처리 - requestAnimationFrame 사용
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            try {
-                                // Selection API 상태 확인 후 focus
-                                if (document.activeElement !== customInput) {
-                                    customInput.focus();
-                                }
-                            } catch (error) {
-                                console.warn('업무 직접입력 필드 focus 오류:', error);
-                                // focus 실패해도 기능은 정상 작동
-                            }
-                        });
-                    });
+                    // focus 호출 제거 - 사용자가 직접 클릭하도록 함
+                    console.log('업무 직접입력 필드 표시됨 - 사용자가 직접 클릭하여 입력하세요');
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
