@@ -2436,14 +2436,19 @@ class SeminarPlanningApp {
             const resultData = await window.loadResultDataByKey(session, datetime);
             
             if (resultData) {
-                // 실시결과 데이터가 있으면 폼에 채우기
-                console.log('✅ 실시결과 데이터 발견, 폼에 채우기:', resultData);
-                this.populateMainResultForm(resultData);
+                // 실시결과 데이터가 있으면 폼에 채우기 (스케치 정보 제외)
+                console.log('✅ 실시결과 데이터 발견, 폼에 채우기 (스케치 제외):', resultData);
+                
+                // 스케치 정보를 제외한 데이터로 폼 채우기
+                const resultDataWithoutSketches = {
+                    ...resultData,
+                    sketches: [] // 스케치 정보는 제외
+                };
+                this.populateMainResultForm(resultDataWithoutSketches);
             } else {
                 // 실시결과 데이터가 없으면 초기화
                 console.log('ℹ️ 실시결과 데이터가 없어서 초기화합니다.');
                 this.initializeResultForm();
-                this.initializeSketchForm();
             }
             
             // 회차_일시 변경 시에는 항상 스케치 정보 클리어 (실행계획은 유지)
