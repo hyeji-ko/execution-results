@@ -1548,6 +1548,71 @@ class SeminarPlanningApp {
             console.error('참석여부 변경 저장 오류:', error);
         }
     }
+
+    // 현재 세미나 데이터 삭제
+    async deleteData() {
+        try {
+            // 현재 세미나 정보 확인
+            const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
+            const datetime = document.getElementById('datetime').value;
+            
+            if (!session || !datetime) {
+                this.showErrorToast('삭제할 세미나 정보를 먼저 입력해주세요.');
+                return;
+            }
+            
+            // 사용자 확인
+            if (!confirm(`정말로 "${session}" 세미나 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+                return;
+            }
+            
+            this.showLoading(true);
+            
+            // 회차 + 일시를 키값으로 사용하여 기존 데이터 찾기
+            const keyValue = `${session}_${datetime}`;
+            const existingData = await this.findExistingDataByKey(keyValue);
+            
+            if (existingData) {
+                // Firebase 또는 로컬 스토리지에서 데이터 삭제
+                if (useLocalStorage) {
+                    // 로컬 스토리지에서 삭제
+                    let allData = this.getAllLocalStorageData();
+                    allData = allData.filter(item => item.id !== existingData.id);
+                    localStorage.setItem('seminarPlans', JSON.stringify(allData));
+                    
+                    this.showSuccessToast(`${session} 세미나 데이터가 성공적으로 삭제되었습니다.`);
+                } else {
+                    // Firebase에서 삭제
+                    await db.collection('seminarPlans').doc(existingData.id).delete();
+                    this.showSuccessToast(`${session} 세미나 데이터가 성공적으로 삭제되었습니다.`);
+                }
+                
+                // 현재 데이터 초기화
+                this.currentData = {
+                    session: '',
+                    objective: '',
+                    datetime: '',
+                    location: '',
+                    attendees: '',
+                    timeSchedule: [],
+                    attendeeList: []
+                };
+                this.currentDocumentId = null;
+                
+                // 폼 초기화
+                this.initializeMainForm();
+                
+            } else {
+                this.showErrorToast('삭제할 세미나 데이터를 찾을 수 없습니다.');
+            }
+            
+        } catch (error) {
+            console.error('데이터 삭제 오류:', error);
+            this.showErrorToast(`데이터 삭제 실패: ${error.message}`);
+        } finally {
+            this.showLoading(false);
+        }
+    }
     
     // 회차 + 일시 키값으로 기존 데이터 찾기
     async findExistingDataByKey(keyValue) {
