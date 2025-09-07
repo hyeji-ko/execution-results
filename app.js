@@ -545,8 +545,7 @@ class SeminarPlanningApp {
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
         
-        // 스케치 정보는 loadMainResultData에서 처리하므로 여기서는 제외
-        // (회차 변경 시 스케치 클리어를 위해 중복 로드 방지)
+        // 실시결과 데이터 로드 (스케치 포함)
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
@@ -2387,6 +2386,22 @@ class SeminarPlanningApp {
         console.log('✅ 실시결과 폼 초기화 완료');
     }
 
+    // 모든 폼 데이터 클리어 (회차 변경 시)
+    clearAllFormData() {
+        console.log('🧹 모든 폼 데이터 클리어 시작');
+        
+        // 1. 실행계획 폼 초기화
+        this.initializeMainForm();
+        
+        // 2. 실시결과 폼 초기화
+        this.initializeResultForm();
+        
+        // 3. 스케치 폼 초기화
+        this.initializeSketchForm();
+        
+        console.log('✅ 모든 폼 데이터 클리어 완료');
+    }
+
     // 스케치 폼 초기화
     initializeSketchForm() {
         // 스케치 1 초기화
@@ -2449,26 +2464,20 @@ class SeminarPlanningApp {
             const resultData = await window.loadResultDataByKey(session, datetime);
             
             if (resultData) {
-                // 실시결과 데이터가 있으면 폼에 채우기 (스케치 정보 제외)
-                console.log('✅ 실시결과 데이터 발견, 폼에 채우기 (스케치 제외):', resultData);
+                // 실시결과 데이터가 있으면 폼에 채우기
+                console.log('✅ 실시결과 데이터 발견, 폼에 채우기:', resultData);
                 
-                // 스케치 정보를 제외한 데이터로 폼 채우기
-                const resultDataWithoutSketches = {
-                    ...resultData,
-                    sketches: [], // 스케치 정보는 제외
-                    mainContent: resultData.mainContent || '', // 기본값 설정
-                    futurePlan: resultData.futurePlan || '' // 기본값 설정
-                };
-                this.populateMainResultForm(resultDataWithoutSketches);
+                // 실시결과 데이터를 그대로 폼에 채우기 (스케치 포함)
+                this.populateMainResultForm(resultData);
             } else {
                 // 실시결과 데이터가 없으면 초기화
                 console.log('ℹ️ 실시결과 데이터가 없어서 초기화합니다.');
                 this.initializeResultForm();
             }
             
-            // 회차_일시 변경 시에는 항상 스케치 정보 클리어 (실행계획은 유지)
-            console.log('🔄 회차_일시 변경으로 인한 스케치 정보 클리어');
-            this.initializeSketchForm();
+            // 회차_일시 변경 시 모든 항목 클리어
+            console.log('🔄 회차_일시 변경으로 인한 모든 항목 클리어');
+            this.clearAllFormData();
             
         } catch (error) {
             console.error('실시결과 데이터 자동 조회 오류:', error);
@@ -5006,23 +5015,9 @@ class SeminarPlanningApp {
             console.log('📊 조회된 실시결과 데이터:', resultData);
             console.log('📊 resultData.objective:', resultData ? resultData.objective : 'null');
             
-            if (resultData) {
-                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드 (스케치 제외):', resultData);
-                
-                // 스케치 정보를 제외한 데이터로 폼 채우기 (회차 변경 시 스케치 클리어)
-                const resultDataWithoutSketches = {
-                    ...resultData,
-                    sketches: [], // 스케치 정보는 제외
-                    mainContent: resultData.mainContent || '', // 기본값 설정
-                    futurePlan: resultData.futurePlan || '' // 기본값 설정
-                };
-                this.populateMainResultForm(resultDataWithoutSketches);
-            } else {
-                console.log('ℹ️ 기존 실시결과 데이터가 없음, 스케치 정보 클리어');
-                
-                // 실시결과 데이터가 없으면 스케치 정보도 클리어
-                this.clearMainResultForm();
-            }
+            // 회차_일시 변경 시 모든 항목 클리어
+            console.log('🔄 회차_일시 변경으로 인한 모든 항목 클리어');
+            this.clearAllFormData();
             
         } catch (error) {
             console.error('메인화면 실시결과 데이터 로드 오류:', error);
@@ -5119,9 +5114,8 @@ class SeminarPlanningApp {
                     }
                 }
             } else {
-                // 스케치가 없으면 스케치 필드 초기화
-                console.log('ℹ️ 스케치 데이터가 없어서 스케치 필드 초기화');
-                this.clearMainSketchFields();
+                // 스케치가 없으면 기존 상태 유지
+                console.log('ℹ️ 스케치 데이터가 없지만 기존 상태 유지');
             }
             
             console.log('✅ 메인화면 폼 데이터 채우기 완료');
