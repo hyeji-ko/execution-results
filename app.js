@@ -5018,19 +5018,19 @@ class SeminarPlanningApp {
             console.log('📊 resultData.objective:', resultData ? resultData.objective : 'null');
             
             if (resultData) {
-                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드:', resultData);
-                this.populateMainResultForm(resultData);
-            } else {
-                console.log('ℹ️ 기존 실시결과 데이터가 없음, currentData에서 스케치 정보 확인');
+                console.log('✅ 기존 실시결과 데이터 발견, 메인화면에 로드 (스케치 제외):', resultData);
                 
-                // currentData에 스케치 정보가 있으면 표시
-                if (this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0) {
-                    console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
-                    this.populateMainResultForm({ sketches: this.currentData.sketches });
-                } else {
-                    console.log('ℹ️ currentData에도 스케치 정보가 없음, 폼 초기화');
-                    this.clearMainResultForm();
-                }
+                // 스케치 정보를 제외한 데이터로 폼 채우기 (회차 변경 시 스케치 클리어)
+                const resultDataWithoutSketches = {
+                    ...resultData,
+                    sketches: [] // 스케치 정보는 제외
+                };
+                this.populateMainResultForm(resultDataWithoutSketches);
+            } else {
+                console.log('ℹ️ 기존 실시결과 데이터가 없음, 스케치 정보 클리어');
+                
+                // 실시결과 데이터가 없으면 스케치 정보도 클리어
+                this.clearMainResultForm();
             }
             
         } catch (error) {
@@ -5193,14 +5193,8 @@ class SeminarPlanningApp {
             const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
-            // 유효성 검사
-            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
-                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
-                if (!skipLoading) {
-                    this.showLoading(false);
-                }
-                return;
-            }
+            // 실시결과 저장은 필수가 아님 (추후 등록 가능)
+            // 유효성 검사 제거
             
             // 기존 실시결과 데이터 조회
             const existingResult = await loadResultDataByKey(session, datetime);
