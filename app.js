@@ -810,15 +810,29 @@ class SeminarPlanningApp {
     toggleCustomPositionInput(index, value) {
         const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
         if (row) {
+            const selectElement = row.querySelector('select[data-field="position"]');
             const customInput = row.querySelector('input[data-field="position-custom"]');
-            if (customInput) {
-                if (value === '직접입력') {
+            
+            if (value === '직접입력') {
+                if (customInput) {
                     customInput.classList.remove('hidden');
                     customInput.focus();
-                } else {
+                }
+            } else {
+                if (customInput) {
                     customInput.classList.add('hidden');
                     customInput.value = '';
                 }
+            }
+            
+            // 직접입력 텍스트박스에 입력할 때 드롭다운을 "직접입력"으로 설정
+            if (customInput) {
+                customInput.addEventListener('input', (e) => {
+                    if (selectElement && selectElement.value !== '직접입력') {
+                        selectElement.value = '직접입력';
+                    }
+                    this.updateAttendeeList(index, 'position', e.target.value);
+                });
             }
         }
     }
@@ -827,15 +841,29 @@ class SeminarPlanningApp {
     toggleCustomWorkInput(index, value) {
         const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
         if (row) {
+            const selectElement = row.querySelector('select[data-field="work"]');
             const customInput = row.querySelector('input[data-field="work-custom"]');
-            if (customInput) {
-                if (value === '직접입력') {
+            
+            if (value === '직접입력') {
+                if (customInput) {
                     customInput.classList.remove('hidden');
                     customInput.focus();
-                } else {
+                }
+            } else {
+                if (customInput) {
                     customInput.classList.add('hidden');
                     customInput.value = '';
                 }
+            }
+            
+            // 직접입력 텍스트박스에 입력할 때 드롭다운을 "직접입력"으로 설정
+            if (customInput) {
+                customInput.addEventListener('input', (e) => {
+                    if (selectElement && selectElement.value !== '직접입력') {
+                        selectElement.value = '직접입력';
+                    }
+                    this.updateAttendeeList(index, 'work', e.target.value);
+                });
             }
         }
     }
@@ -859,6 +887,16 @@ class SeminarPlanningApp {
                     inputElement.classList.add('hidden');
                     inputElement.value = '';
                 }
+            }
+            
+            // 직접입력 텍스트박스에 입력할 때 드롭다운을 "직접입력"으로 설정
+            if (inputElement) {
+                inputElement.addEventListener('input', (e) => {
+                    if (selectElement && selectElement.value !== '직접입력') {
+                        selectElement.value = '직접입력';
+                    }
+                    this.updateAttendeeList(index, 'department', e.target.value);
+                });
             }
         }
     }
@@ -1069,25 +1107,28 @@ class SeminarPlanningApp {
                 fieldName = fieldName.replace('-custom', '');
             }
             
-            // 모바일에서 input 이벤트가 제대로 작동하도록 여러 이벤트 리스너 추가
-            input.addEventListener('input', (e) => {
-                this.updateAttendeeList(index, fieldName, e.target.value);
-            });
-            input.addEventListener('change', (e) => {
-                this.updateAttendeeList(index, fieldName, e.target.value);
-                
-                // 직접입력 토글 처리
-                if (fieldName === 'position') {
-                    this.toggleCustomPositionInput(index, e.target.value);
-                } else if (fieldName === 'work') {
-                    this.toggleCustomWorkInput(index, e.target.value);
-                } else if (fieldName === 'department') {
-                    this.toggleCustomDepartmentInput(index, e.target.value);
-                }
-            });
-            input.addEventListener('blur', (e) => {
-                this.updateAttendeeList(index, fieldName, e.target.value);
-            });
+            // 직접입력 텍스트박스가 아닌 경우에만 이벤트 리스너 추가
+            if (!fieldName.endsWith('-custom')) {
+                // 모바일에서 input 이벤트가 제대로 작동하도록 여러 이벤트 리스너 추가
+                input.addEventListener('input', (e) => {
+                    this.updateAttendeeList(index, fieldName, e.target.value);
+                });
+                input.addEventListener('change', (e) => {
+                    this.updateAttendeeList(index, fieldName, e.target.value);
+                    
+                    // 직접입력 토글 처리
+                    if (fieldName === 'position') {
+                        this.toggleCustomPositionInput(index, e.target.value);
+                    } else if (fieldName === 'work') {
+                        this.toggleCustomWorkInput(index, e.target.value);
+                    } else if (fieldName === 'department') {
+                        this.toggleCustomDepartmentInput(index, e.target.value);
+                    }
+                });
+                input.addEventListener('blur', (e) => {
+                    this.updateAttendeeList(index, fieldName, e.target.value);
+                });
+            }
         });
     }
 
@@ -1189,8 +1230,7 @@ class SeminarPlanningApp {
                     </select>
                     <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
                            placeholder="직급을 직접 입력하세요" 
-                           data-field="position-custom"
-                           onchange="app.updateAttendeeList(${index}, 'position', this.value)">
+                           data-field="position-custom">
                 </td>
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
@@ -1205,8 +1245,7 @@ class SeminarPlanningApp {
                     </select>
                     <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
                            placeholder="소속을 직접 입력하세요" 
-                           data-field="department-custom"
-                           onchange="app.updateAttendeeList(${index}, 'department', this.value)">
+                           data-field="department-custom">
                 </td>
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
@@ -1228,8 +1267,7 @@ class SeminarPlanningApp {
                     </select>
                     <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
                            placeholder="업무를 직접 입력하세요" 
-                           data-field="work-custom"
-                           onchange="app.updateAttendeeList(${index}, 'work', this.value)">
+                           data-field="work-custom">
                 </td>
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
