@@ -104,6 +104,11 @@ class SeminarPlanningApp {
         this.bindEvents();
         await this.loadInitialData();
         this.addDefaultRows();
+        
+        // 초기화 시 스케치 버튼 상태 확인
+        setTimeout(() => {
+            this.toggleQuickSaveSketchButton();
+        }, 100);
     }
 
     bindEvents() {
@@ -2007,6 +2012,11 @@ class SeminarPlanningApp {
                 
                 await this.populateForm();
                 console.log('📋 폼 채우기 완료');
+                
+                // 스케치 버튼 상태 확인
+                setTimeout(() => {
+                    this.toggleQuickSaveSketchButton();
+                }, 100);
                 
                 this.showSuccessToast(`${session} 세미나 계획을 불러왔습니다.`);
             } else {
@@ -4776,6 +4786,11 @@ class SeminarPlanningApp {
             }
             
             console.log('✅ 메인화면 폼 데이터 채우기 완료');
+            
+            // 스케치 버튼 상태 확인
+            setTimeout(() => {
+                this.toggleQuickSaveSketchButton();
+            }, 100);
             
         } catch (error) {
             console.error('메인화면 폼 데이터 채우기 오류:', error);
