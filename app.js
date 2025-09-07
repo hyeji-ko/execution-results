@@ -4995,19 +4995,9 @@ class SeminarPlanningApp {
                 datetime 
             });
             
-            // 세미나 정보가 없어도 currentData에서 스케치 정보를 확인
+            // 세미나 정보가 없으면 실시결과 데이터 조회를 건너뜀
             if (!session || !datetime) {
-                console.log('⚠️ 세미나 정보가 없지만 currentData에서 스케치 정보 확인');
-                
-                // currentData에 스케치 정보가 있으면 표시
-                if (this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0) {
-                    console.log('✅ currentData에서 스케치 정보 발견:', this.currentData.sketches);
-                    this.populateMainResultForm({ sketches: this.currentData.sketches });
-                    return;
-                }
-                
-                console.log('ℹ️ currentData에도 스케치 정보가 없음, 기존 상태 유지');
-                // this.clearMainResultForm(); // 주석 처리하여 기존 스케치 유지
+                console.log('⚠️ 세미나 정보가 없어서 실시결과 데이터 조회를 건너뜁니다.');
                 return;
             }
             
@@ -5054,7 +5044,9 @@ class SeminarPlanningApp {
                     mainContentEl.value = resultData.mainContent;
                     console.log('✅ 주요 내용 설정 (실시결과 데이터):', resultData.mainContent);
                 } else {
-                    console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 현재 폼 값 유지:', mainContentEl.value);
+                    // 실시결과 데이터에 주요 내용이 없으면 빈 값으로 설정
+                    mainContentEl.value = '';
+                    console.log('ℹ️ 실시결과 데이터에 주요 내용이 없음, 빈 값으로 설정');
                 }
                 // PDF 실시결과 내보내기 버튼 상태 업데이트
                 this.toggleExportResultPDFButton();
@@ -5065,7 +5057,9 @@ class SeminarPlanningApp {
                     futurePlanEl.value = resultData.futurePlan;
                     console.log('✅ 향후 계획 설정 (실시결과 데이터):', resultData.futurePlan);
                 } else {
-                    console.log('ℹ️ 실시결과 데이터에 향후 계획이 없음, 현재 폼 값 유지:', futurePlanEl.value);
+                    // 실시결과 데이터에 향후 계획이 없으면 빈 값으로 설정
+                    futurePlanEl.value = '';
+                    console.log('ℹ️ 실시결과 데이터에 향후 계획이 없음, 빈 값으로 설정');
                 }
             }
             
@@ -5125,9 +5119,9 @@ class SeminarPlanningApp {
                     }
                 }
             } else {
-                // 스케치가 없으면 초기화하지 않고 기존 상태 유지
-                console.log('ℹ️ 스케치 데이터가 없지만 기존 상태 유지');
-                // this.clearMainSketchFields(); // 주석 처리하여 기존 스케치 유지
+                // 스케치가 없으면 스케치 필드 초기화
+                console.log('ℹ️ 스케치 데이터가 없어서 스케치 필드 초기화');
+                this.clearMainSketchFields();
             }
             
             console.log('✅ 메인화면 폼 데이터 채우기 완료');
