@@ -4427,26 +4427,26 @@ class SeminarPlanningApp {
             // □ 로 시작하는 경우 (공백 포함)
             if (trimmedLine.startsWith('□ ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`  □ ${content}`);
+                result.push(`&nbsp;&nbsp;□ ${content}`);
             }
             // - 로 시작하는 경우 (공백 포함)
             else if (trimmedLine.startsWith('- ')) {
                 const content = trimmedLine.substring(2).trim();
-                result.push(`      - ${content}`);
+                result.push(`&nbsp;&nbsp;&nbsp;&nbsp;- ${content}`);
             }
             // □ 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('□')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`  □ ${content}`);
+                result.push(`&nbsp;&nbsp;□ ${content}`);
             }
             // - 로 시작하는 경우 (공백 없음)
             else if (trimmedLine.startsWith('-')) {
                 const content = trimmedLine.substring(1).trim();
-                result.push(`      - ${content}`);
+                result.push(`&nbsp;&nbsp;&nbsp;&nbsp;- ${content}`);
             }
             // 일반 텍스트인 경우
             else {
-                result.push(`  □ ${trimmedLine}`);
+                result.push(`&nbsp;&nbsp;□ ${trimmedLine}`);
             }
         }
         
