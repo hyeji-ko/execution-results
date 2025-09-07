@@ -2,7 +2,7 @@
 // 실제 프로젝트에서는 Firebase 콘솔에서 가져온 설정을 사용해야 합니다.
 
 // Firebase를 기본 저장소로 사용
-const useLocalStorage = false; // 임시로 로컬 스토리지 사용 (Firebase 연결 문제 해결 전까지)
+const useLocalStorage = true; // Firebase 연결 문제로 인해 로컬 스토리지 사용
 
 const firebaseConfig = {
     apiKey: "AIzaSyDorTHDMuGf-Ghinx3-vYD-NVz_nXk-J6I",
