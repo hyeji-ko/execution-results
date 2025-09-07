@@ -526,11 +526,13 @@ class SeminarPlanningApp {
                             data-index="0" data-field="position">
                         <option value="">선택하세요</option>
                         <option value="상무">상무</option>
-                        <option value="선임">선임</option>
-                        <option value="이사">이사</option>
                         <option value="전무">전무</option>
-                        <option value="책임">책임</option>
+                        <option value="이사">이사</option>
                         <option value="팀장">팀장</option>
+                        <option value="부장">부장</option>
+                        <option value="차장">차장</option>
+                        <option value="책임">책임</option>
+                        <option value="선임">선임</option> 
                         <option value="직접입력">직접입력</option>
                     </select>
                     <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
@@ -674,12 +676,14 @@ class SeminarPlanningApp {
                 <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                         data-field="position">
                     <option value="">선택하세요</option>
-                    <option value="상무">상무</option>
-                    <option value="선임">선임</option>
-                    <option value="이사">이사</option>
-                    <option value="전무">전무</option>
-                    <option value="책임">책임</option>
-                    <option value="팀장">팀장</option>
+                        <option value="상무">상무</option>
+                        <option value="전무">전무</option>
+                        <option value="이사">이사</option>
+                        <option value="팀장">팀장</option>
+                        <option value="부장">부장</option>
+                        <option value="차장">차장</option>
+                        <option value="책임">책임</option>
+                        <option value="선임">선임</option> 
                     <option value="직접입력">직접입력</option>
                 </select>
                 <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
@@ -831,6 +835,12 @@ class SeminarPlanningApp {
                     if (selectElement && selectElement.value !== '직접입력') {
                         selectElement.value = '직접입력';
                     }
+                    // 실제 입력한 값을 저장
+                    this.updateAttendeeList(index, 'position', e.target.value);
+                });
+                
+                customInput.addEventListener('blur', (e) => {
+                    // 포커스를 잃을 때도 값 저장
                     this.updateAttendeeList(index, 'position', e.target.value);
                 });
             }
@@ -862,6 +872,12 @@ class SeminarPlanningApp {
                     if (selectElement && selectElement.value !== '직접입력') {
                         selectElement.value = '직접입력';
                     }
+                    // 실제 입력한 값을 저장
+                    this.updateAttendeeList(index, 'work', e.target.value);
+                });
+                
+                customInput.addEventListener('blur', (e) => {
+                    // 포커스를 잃을 때도 값 저장
                     this.updateAttendeeList(index, 'work', e.target.value);
                 });
             }
@@ -895,6 +911,12 @@ class SeminarPlanningApp {
                     if (selectElement && selectElement.value !== '직접입력') {
                         selectElement.value = '직접입력';
                     }
+                    // 실제 입력한 값을 저장
+                    this.updateAttendeeList(index, 'department', e.target.value);
+                });
+                
+                inputElement.addEventListener('blur', (e) => {
+                    // 포커스를 잃을 때도 값 저장
                     this.updateAttendeeList(index, 'department', e.target.value);
                 });
             }
@@ -1221,11 +1243,13 @@ class SeminarPlanningApp {
                             data-field="position">
                         <option value="">선택하세요</option>
                         <option value="상무">상무</option>
-                        <option value="선임">선임</option>
-                        <option value="이사">이사</option>
                         <option value="전무">전무</option>
-                        <option value="책임">책임</option>
+                        <option value="이사">이사</option>
                         <option value="팀장">팀장</option>
+                        <option value="부장">부장</option>
+                        <option value="차장">차장</option>
+                        <option value="책임">책임</option>
+                        <option value="선임">선임</option>
                         <option value="직접입력">직접입력</option>
                     </select>
                     <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-1 hidden" 
@@ -1297,7 +1321,7 @@ class SeminarPlanningApp {
             
             // 직급 필드 처리
             if (item.position !== undefined && item.position !== null) {
-                const positionOptions = ['상무', '선임', '이사', '전무', '책임', '팀장'];
+                const positionOptions = ['상무', '전무', '이사', '팀장','부장','차장','책임','선임'];
                 const positionSelect = row.querySelector('select[data-field="position"]');
                 const positionCustomInput = row.querySelector('input[data-field="position-custom"]');
                 
@@ -1307,8 +1331,8 @@ class SeminarPlanningApp {
                         positionSelect.value = item.position;
                         console.log(`참석자 position 값 설정: ${item.position}`);
                     }
-                } else {
-                    // 직접입력인 경우
+                } else if (item.position && item.position.trim() !== '') {
+                    // 직접입력인 경우 (값이 있고 비어있지 않은 경우)
                     if (positionSelect) {
                         positionSelect.value = '직접입력';
                     }
@@ -1316,6 +1340,15 @@ class SeminarPlanningApp {
                         positionCustomInput.value = item.position;
                         positionCustomInput.classList.remove('hidden');
                         console.log(`참석자 position 직접입력 값 설정: ${item.position}`);
+                    }
+                } else {
+                    // 값이 없는 경우
+                    if (positionSelect) {
+                        positionSelect.value = '';
+                    }
+                    if (positionCustomInput) {
+                        positionCustomInput.classList.add('hidden');
+                        positionCustomInput.value = '';
                     }
                 }
             }
@@ -1332,8 +1365,11 @@ class SeminarPlanningApp {
                         departmentSelect.value = item.department;
                         console.log(`참석자 department 값 설정: ${item.department}`);
                     }
-                } else {
-                    // 직접 입력된 값인 경우
+                    if (departmentCustomInput) {
+                        departmentCustomInput.classList.add('hidden');
+                    }
+                } else if (item.department && item.department.trim() !== '') {
+                    // 직접 입력된 값인 경우 (값이 있고 비어있지 않은 경우)
                     if (departmentSelect) {
                         departmentSelect.value = '직접입력';
                     }
@@ -1341,6 +1377,15 @@ class SeminarPlanningApp {
                         departmentCustomInput.value = item.department;
                         departmentCustomInput.classList.remove('hidden');
                         console.log(`참석자 department 직접입력 값 설정: ${item.department}`);
+                    }
+                } else {
+                    // 값이 없는 경우
+                    if (departmentSelect) {
+                        departmentSelect.value = '';
+                    }
+                    if (departmentCustomInput) {
+                        departmentCustomInput.classList.add('hidden');
+                        departmentCustomInput.value = '';
                     }
                 }
             }
@@ -1357,8 +1402,11 @@ class SeminarPlanningApp {
                         workSelect.value = item.work;
                         console.log(`참석자 work 값 설정: ${item.work}`);
                     }
-                } else {
-                    // 직접입력인 경우
+                    if (workCustomInput) {
+                        workCustomInput.classList.add('hidden');
+                    }
+                } else if (item.work && item.work.trim() !== '') {
+                    // 직접입력인 경우 (값이 있고 비어있지 않은 경우)
                     if (workSelect) {
                         workSelect.value = '직접입력';
                     }
@@ -1366,6 +1414,15 @@ class SeminarPlanningApp {
                         workCustomInput.value = item.work;
                         workCustomInput.classList.remove('hidden');
                         console.log(`참석자 work 직접입력 값 설정: ${item.work}`);
+                    }
+                } else {
+                    // 값이 없는 경우
+                    if (workSelect) {
+                        workSelect.value = '';
+                    }
+                    if (workCustomInput) {
+                        workCustomInput.classList.add('hidden');
+                        workCustomInput.value = '';
                     }
                 }
             }
@@ -4849,14 +4906,8 @@ class SeminarPlanningApp {
             const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
-            // 유효성 검사
-            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
-                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
-                if (!skipLoading) {
-                    this.showLoading(false);
-                }
-                return;
-            }
+            // 실시결과 입력 항목과 스케치 정보는 필수값이 아니므로 유효성 검사 제거
+            // 공백값으로도 저장 가능
             
             // 기존 실시결과 데이터 조회
             const existingResult = await loadResultDataByKey(session, datetime);
@@ -4865,8 +4916,8 @@ class SeminarPlanningApp {
             const resultData = {
                 session: session,
                 datetime: datetime,
-                mainContent: mainContent,
-                futurePlan: futurePlan,
+                mainContent: mainContent || '', // 공백값도 저장 가능
+                futurePlan: futurePlan || '', // 공백값도 저장 가능
                 sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
             };
             
@@ -4966,15 +5017,8 @@ class SeminarPlanningApp {
             const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
-            // 스케치 정보가 있는지 확인 (조회된 데이터가 있거나 현재 변경사항이 있으면 저장 가능)
-            const hasCurrentChanges = sketchFile1 || sketchFile2 || sketchTitle1 || sketchTitle2;
-            const hasExistingSketchData = this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0;
-            
-            if (!hasCurrentChanges && !hasExistingSketchData) {
-                this.showErrorToast('저장할 스케치 정보가 없습니다.');
-                this.showLoading(false);
-                return;
-            }
+            // 스케치 정보는 필수값이 아니므로 유효성 검사 제거
+            // 공백값으로도 저장 가능 (스케치 정보를 모두 지우고 저장하는 경우)
             
             // 기존 실시결과 데이터 조회
             const existingResult = await loadResultDataByKey(session, datetime);
@@ -4987,6 +5031,7 @@ class SeminarPlanningApp {
             };
             
             // 현재 변경사항이 없고 기존 스케치 데이터가 있는 경우, 모든 스케치를 삭제하는 것으로 간주
+            // 또는 스케치 정보를 모두 지우고 저장하는 경우도 허용
             if (!hasCurrentChanges && hasExistingSketchData) {
                 sketchData.sketches = []; // 빈 배열로 설정하여 모든 스케치 삭제
             }
