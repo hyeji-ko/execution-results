@@ -137,20 +137,6 @@ class SeminarPlanningApp {
         // 참석전체 Y 처리 버튼
         document.getElementById('selectAllAttendees').addEventListener('click', () => this.selectAllAttendees());
         
-        // 빠른 저장 버튼들
-        document.getElementById('quickSaveBtn').addEventListener('click', () => this.saveData());
-        document.getElementById('quickSaveResultBtn').addEventListener('click', () => this.saveMainResultData());
-        document.getElementById('quickSaveSketchBtn').addEventListener('click', () => this.saveSketchData());
-        
-        // 실시결과 내용 변경 시 빠른 저장 버튼 상태 업데이트
-        document.getElementById('mainResultContent').addEventListener('input', () => this.toggleQuickSaveButtons());
-        document.getElementById('mainResultFuturePlan').addEventListener('input', () => this.toggleQuickSaveButtons());
-        
-        // 스케치 정보 변경 시 빠른 저장 버튼 상태 업데이트
-        document.getElementById('mainSketchTitle1').addEventListener('input', () => this.toggleQuickSaveSketchButton());
-        document.getElementById('mainSketchTitle2').addEventListener('input', () => this.toggleQuickSaveSketchButton());
-        document.getElementById('mainSketchFile1').addEventListener('change', () => this.toggleQuickSaveSketchButton());
-        document.getElementById('mainSketchFile2').addEventListener('change', () => this.toggleQuickSaveSketchButton());
         
         // 내보내기 버튼들
         document.getElementById('exportPDF').addEventListener('click', () => this.exportToPDF());
@@ -300,7 +286,13 @@ class SeminarPlanningApp {
         const file2 = document.getElementById('mainSketchFile2').files[0];
         
         // 제목이나 파일이 있으면 변경된 것으로 간주
-        return (title1.length > 0 || file1) || (title2.length > 0 || file2);
+        const hasCurrentChanges = (title1.length > 0 || file1) || (title2.length > 0 || file2);
+        
+        // currentData에 스케치 정보가 있는지 확인 (조회된 데이터가 있는 경우)
+        const hasExistingSketchData = this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0;
+        
+        // 현재 변경사항이 있거나 기존 스케치 데이터가 있으면 활성화
+        return hasCurrentChanges || hasExistingSketchData;
     }
     
     // 일시 형식 검증
@@ -1480,6 +1472,10 @@ class SeminarPlanningApp {
                 // 기본 데이터 저장 성공 시 실시결과 데이터도 저장
                 console.log('📝 기본 데이터 저장 완료, 실시결과 데이터 저장 시작');
                 await this.saveMainResultData(true); // skipLoading = true
+                
+                // 스케치 정보도 함께 저장
+                console.log('🖼️ 스케치 정보 저장 시작');
+                await this.saveSketchData(true); // skipLoading = true
             }
             
         } catch (error) {
@@ -1750,6 +1746,9 @@ class SeminarPlanningApp {
                 attendance: attendance
             });
         });
+        
+        // 스케치 정보 수집
+        this.currentData.sketches = this.getMainSketchData();
     }
 
     showLoading(show) {
@@ -4594,7 +4593,6 @@ class SeminarPlanningApp {
     // 메인화면 실시결과 데이터 가져오기
     getMainResultData() {
         return {
-            objective: document.getElementById('objective').value.trim(),
             mainContent: document.getElementById('mainResultContent').value.trim(),
             futurePlan: document.getElementById('mainResultFuturePlan').value.trim(),
             sketches: this.getMainSketchData()
@@ -4608,20 +4606,26 @@ class SeminarPlanningApp {
         // 스케치 1
         const title1 = document.getElementById('mainSketchTitle1').value.trim();
         const file1 = document.getElementById('mainSketchFile1').files[0];
-        if (title1 && file1) {
+        const previewImg1 = document.getElementById('mainPreviewImage1');
+        
+        if (title1 && (file1 || previewImg1?.src)) {
             sketches.push({
                 title: title1,
-                file: file1
+                imageData: previewImg1?.src || null,
+                fileName: file1?.name || '업로드된 이미지'
             });
         }
         
         // 스케치 2
         const title2 = document.getElementById('mainSketchTitle2').value.trim();
         const file2 = document.getElementById('mainSketchFile2').files[0];
-        if (title2 && file2) {
+        const previewImg2 = document.getElementById('mainPreviewImage2');
+        
+        if (title2 && (file2 || previewImg2?.src)) {
             sketches.push({
                 title: title2,
-                file: file2
+                imageData: previewImg2?.src || null,
+                fileName: file2?.name || '업로드된 이미지'
             });
         }
         
@@ -4684,25 +4688,9 @@ class SeminarPlanningApp {
         console.log('📝 메인화면 폼에 데이터 채우기:', resultData);
         
         try {
-            // 목표, 주요 내용, 향후 계획 채우기
-            const objectiveEl = document.getElementById('objective');
+            // 주요 내용, 향후 계획 채우기
             const mainContentEl = document.getElementById('mainResultContent');
             const futurePlanEl = document.getElementById('mainResultFuturePlan');
-            
-            if (objectiveEl) {
-                // resultData.objective가 있으면 사용, 없으면 현재 폼 값 유지
-                if (resultData.objective) {
-                    objectiveEl.value = resultData.objective;
-                    this.currentData.objective = resultData.objective;
-                    console.log('✅ 목표 설정 (실시결과 데이터):', resultData.objective);
-                } else {
-                    console.log('ℹ️ 실시결과 데이터에 목표가 없음, 현재 폼 값 유지:', objectiveEl.value);
-                }
-                console.log('✅ objectiveEl.value:', objectiveEl.value);
-                console.log('✅ this.currentData.objective:', this.currentData.objective);
-            } else {
-                console.log('❌ objectiveEl을 찾을 수 없습니다.');
-            }
             
             if (mainContentEl) {
                 if (resultData.mainContent) {
@@ -4838,7 +4826,6 @@ class SeminarPlanningApp {
                 return;
             }
             
-            const objective = document.getElementById('objective').value.trim();
             const mainContent = document.getElementById('mainResultContent').value.trim();
             const futurePlan = document.getElementById('mainResultFuturePlan').value.trim();
             
@@ -4851,8 +4838,8 @@ class SeminarPlanningApp {
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
             // 유효성 검사
-            if (!objective && !mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
-                this.showErrorToast('목표, 주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
+            if (!mainContent && !futurePlan && !sketchFile1 && !sketchFile2) {
+                this.showErrorToast('주요 내용, 향후 계획, 또는 스케치 중 하나는 입력해주세요.');
                 if (!skipLoading) {
                     this.showLoading(false);
                 }
@@ -4866,7 +4853,6 @@ class SeminarPlanningApp {
             const resultData = {
                 session: session,
                 datetime: datetime,
-                objective: objective,
                 mainContent: mainContent,
                 futurePlan: futurePlan,
                 sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
@@ -4968,8 +4954,11 @@ class SeminarPlanningApp {
             const sketchTitle2 = document.getElementById('mainSketchTitle2').value.trim();
             const sketchFile2 = document.getElementById('mainSketchFile2').files[0];
             
-            // 스케치 정보가 있는지 확인
-            if (!sketchFile1 && !sketchFile2 && !sketchTitle1 && !sketchTitle2) {
+            // 스케치 정보가 있는지 확인 (조회된 데이터가 있거나 현재 변경사항이 있으면 저장 가능)
+            const hasCurrentChanges = sketchFile1 || sketchFile2 || sketchTitle1 || sketchTitle2;
+            const hasExistingSketchData = this.currentData && this.currentData.sketches && this.currentData.sketches.length > 0;
+            
+            if (!hasCurrentChanges && !hasExistingSketchData) {
                 this.showErrorToast('저장할 스케치 정보가 없습니다.');
                 this.showLoading(false);
                 return;
@@ -4984,6 +4973,11 @@ class SeminarPlanningApp {
                 datetime: datetime,
                 sketches: existingResult && existingResult.sketches ? [...existingResult.sketches] : []
             };
+            
+            // 현재 변경사항이 없고 기존 스케치 데이터가 있는 경우, 모든 스케치를 삭제하는 것으로 간주
+            if (!hasCurrentChanges && hasExistingSketchData) {
+                sketchData.sketches = []; // 빈 배열로 설정하여 모든 스케치 삭제
+            }
             
             // 스케치 1 처리
             if (sketchFile1) {
@@ -5043,8 +5037,12 @@ class SeminarPlanningApp {
             const result = await saveResultData(sketchData);
             
             if (result.success) {
-                this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
-                // 스케치 저장 후 버튼 숨기기
+                if (sketchData.sketches.length === 0) {
+                    this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
+                } else {
+                    this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
+                }
+                // 스케치 저장 후 버튼 상태 업데이트
                 this.toggleQuickSaveSketchButton();
             } else {
                 this.showErrorToast(result.message);

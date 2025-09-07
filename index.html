@@ -375,20 +375,20 @@
             </div>
         </div>
 
-        <!-- Quick Save Section -->
+        <!-- Save / Query Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <i class="fas fa-save text-green-600 mr-3"></i>빠른 저장
+                <i class="fas fa-tools text-blue-600 mr-3"></i>저장 / 삭제 / 조회
             </h2>
             <div class="flex flex-wrap gap-4">
-                <button id="quickSaveBtn" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fas fa-save mr-2"></i>세미나 계획 저장
+                <button id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-file-alt mr-2"></i>저장
                 </button>
-                <button id="quickSaveResultBtn" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" style="display: none;">
-                    <i class="fas fa-save mr-2"></i>실시결과 저장
+                <button id="deleteBtn" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-trash mr-2"></i>삭제
                 </button>
-                <button id="quickSaveSketchBtn" class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" style="display: none;">
-                    <i class="fas fa-image mr-2"></i>세미나 스케치 저장
+                <button id="loadBtn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="fas fa-search mr-2"></i>조회
                 </button>
             </div>
         </div>
