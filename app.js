@@ -545,11 +545,8 @@ class SeminarPlanningApp {
         // 실시결과 데이터도 함께 로드 (목표 포함)
         await this.loadMainResultData();
         
-        // 스케치 정보가 있으면 표시 (loadMainResultData 후에)
-        if (this.currentData.sketches && this.currentData.sketches.length > 0) {
-            console.log('🖼️ currentData에서 스케치 정보 발견, 표시:', this.currentData.sketches);
-            this.populateMainResultForm({ sketches: this.currentData.sketches });
-        }
+        // 스케치 정보는 loadMainResultData에서 처리하므로 여기서는 제외
+        // (회차 변경 시 스케치 클리어를 위해 중복 로드 방지)
         
         // PDF 실시결과 내보내기 버튼 상태 초기화
         this.toggleExportResultPDFButton();
@@ -2458,7 +2455,9 @@ class SeminarPlanningApp {
                 // 스케치 정보를 제외한 데이터로 폼 채우기
                 const resultDataWithoutSketches = {
                     ...resultData,
-                    sketches: [] // 스케치 정보는 제외
+                    sketches: [], // 스케치 정보는 제외
+                    mainContent: resultData.mainContent || '', // 기본값 설정
+                    futurePlan: resultData.futurePlan || '' // 기본값 설정
                 };
                 this.populateMainResultForm(resultDataWithoutSketches);
             } else {
@@ -5023,7 +5022,9 @@ class SeminarPlanningApp {
                 // 스케치 정보를 제외한 데이터로 폼 채우기 (회차 변경 시 스케치 클리어)
                 const resultDataWithoutSketches = {
                     ...resultData,
-                    sketches: [] // 스케치 정보는 제외
+                    sketches: [], // 스케치 정보는 제외
+                    mainContent: resultData.mainContent || '', // 기본값 설정
+                    futurePlan: resultData.futurePlan || '' // 기본값 설정
                 };
                 this.populateMainResultForm(resultDataWithoutSketches);
             } else {
