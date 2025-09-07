@@ -741,21 +741,7 @@ class SeminarPlanningApp {
         // 이벤트 리스너 추가 (모바일 환경 고려)
         this.bindAttendeeRowEvents(row, rowCount);
         
-        // 직접입력 토글 이벤트 추가
-        const positionSelect = row.querySelector('select[data-field="position"]');
-        const workSelect = row.querySelector('select[data-field="work"]');
-        
-        if (positionSelect) {
-            positionSelect.addEventListener('change', (e) => {
-                this.toggleCustomPositionInput(rowCount, e.target.value);
-            });
-        }
-        
-        if (workSelect) {
-            workSelect.addEventListener('change', (e) => {
-                this.toggleCustomWorkInput(rowCount, e.target.value);
-            });
-        }
+        // 직접입력 토글 이벤트는 bindAttendeeRowEvents에서 처리됨
         
         // 데이터 구조에 새 행 추가
         this.currentData.attendeeList[rowCount] = {
@@ -815,35 +801,8 @@ class SeminarPlanningApp {
                 this.saveDataQuietly();
             }
             
-            // 소속 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
-            if (field === 'department') {
-                // 현재 활성화된 요소 찾기
-                const activeElement = document.activeElement;
-                const selectElement = activeElement.tagName === 'SELECT' ? activeElement : 
-                                    activeElement.closest('tr').querySelector('select[data-field="department"]');
-                const inputElement = document.getElementById(`departmentInput_${index}`);
-                
-                if (value === '직접입력') {
-                    if (selectElement) selectElement.style.display = 'none';
-                    if (inputElement) {
-                        inputElement.classList.remove('hidden');
-                        inputElement.focus();
-                    }
-                } else {
-                    if (selectElement) selectElement.style.display = 'block';
-                    if (inputElement) inputElement.classList.add('hidden');
-                }
-            }
-            
-            // 직급 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
-            if (field === 'position') {
-                this.toggleCustomPositionInput(index, value);
-            }
-            
-            // 업무 필드에서 "직접입력" 선택 시 입력 필드 표시/숨김 처리
-            if (field === 'work') {
-                this.toggleCustomWorkInput(index, value);
-            }
+            // 직접입력 토글은 bindAttendeeRowEvents의 change 이벤트에서 처리됨
+            // (중복 실행 방지)
         }
     }
     
@@ -876,6 +835,29 @@ class SeminarPlanningApp {
                 } else {
                     customInput.classList.add('hidden');
                     customInput.value = '';
+                }
+            }
+        }
+    }
+    
+    // 직접입력 필드 토글 (소속용)
+    toggleCustomDepartmentInput(index, value) {
+        const row = document.querySelector(`#attendeeTableBody tr:nth-child(${index + 1})`);
+        if (row) {
+            const selectElement = row.querySelector('select[data-field="department"]');
+            const inputElement = document.getElementById(`departmentInput_${index}`);
+            
+            if (value === '직접입력') {
+                if (selectElement) selectElement.style.display = 'none';
+                if (inputElement) {
+                    inputElement.classList.remove('hidden');
+                    inputElement.focus();
+                }
+            } else {
+                if (selectElement) selectElement.style.display = 'block';
+                if (inputElement) {
+                    inputElement.classList.add('hidden');
+                    inputElement.value = '';
                 }
             }
         }
@@ -1093,6 +1075,15 @@ class SeminarPlanningApp {
             });
             input.addEventListener('change', (e) => {
                 this.updateAttendeeList(index, fieldName, e.target.value);
+                
+                // 직접입력 토글 처리
+                if (fieldName === 'position') {
+                    this.toggleCustomPositionInput(index, e.target.value);
+                } else if (fieldName === 'work') {
+                    this.toggleCustomWorkInput(index, e.target.value);
+                } else if (fieldName === 'department') {
+                    this.toggleCustomDepartmentInput(index, e.target.value);
+                }
             });
             input.addEventListener('blur', (e) => {
                 this.updateAttendeeList(index, fieldName, e.target.value);
@@ -1186,8 +1177,7 @@ class SeminarPlanningApp {
                 </td>
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            data-field="position"
-                            onchange="app.updateAttendeeList(${index}, 'position', this.value); app.toggleCustomPositionInput(${index}, this.value)">
+                            data-field="position">
                         <option value="">선택하세요</option>
                         <option value="상무">상무</option>
                         <option value="선임">선임</option>
@@ -1220,8 +1210,7 @@ class SeminarPlanningApp {
                 </td>
                 <td class="px-4 py-3 border-b">
                     <select class="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                            data-field="work"
-                            onchange="app.updateAttendeeList(${index}, 'work', this.value); app.toggleCustomWorkInput(${index}, this.value)">
+                            data-field="work">
                         <option value="">선택하세요</option>
                         <option value="본부장">본부장</option>
                         <option value="담당임원">담당임원</option>
@@ -1381,23 +1370,7 @@ class SeminarPlanningApp {
             // 이벤트 리스너 추가 (모바일 환경 고려)
             this.bindAttendeeRowEvents(row, index);
             
-            // 직접입력 토글 이벤트 추가
-            const positionSelect = row.querySelector('select[data-field="position"]');
-            const workSelect = row.querySelector('select[data-field="work"]');
-            
-            console.log(`참석자 이벤트 바인딩: index=${index}, positionSelect=`, positionSelect, 'workSelect=', workSelect);
-            
-            if (positionSelect) {
-                positionSelect.addEventListener('change', (e) => {
-                    this.toggleCustomPositionInput(index, e.target.value);
-                });
-            }
-            
-            if (workSelect) {
-                workSelect.addEventListener('change', (e) => {
-                    this.toggleCustomWorkInput(index, e.target.value);
-                });
-            }
+            // 직접입력 토글 이벤트는 bindAttendeeRowEvents에서 처리됨
             
             // 행을 tbody에 추가
             tbody.appendChild(row);
