@@ -5230,7 +5230,10 @@ class SeminarPlanningApp {
             const result = await saveResultData(resultData);
             
             if (result.success) {
-                this.showSuccessToast('메인화면 실시결과가 성공적으로 저장되었습니다.');
+                // 메인 저장 시에는 토스트 메시지 표시하지 않음 (skipLoading = true)
+                if (!skipLoading) {
+                    this.showSuccessToast('메인화면 실시결과가 성공적으로 저장되었습니다.');
+                }
             } else {
                 this.showErrorToast(result.message);
             }
@@ -5246,9 +5249,11 @@ class SeminarPlanningApp {
     }
     
     // 스케치 정보만 저장하는 함수
-    async saveSketchData() {
+    async saveSketchData(skipLoading = false) {
         try {
-            this.showLoading(true);
+            if (!skipLoading) {
+                this.showLoading(true);
+            }
             
             // 현재 세미나 정보 가져오기
             const session = document.getElementById('sessionSelect').value || document.getElementById('sessionInput').value;
@@ -5351,10 +5356,13 @@ class SeminarPlanningApp {
             const result = await saveResultData(sketchData);
             
             if (result.success) {
-                if (sketchData.sketches.length === 0) {
-                    this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
-                } else {
-                    this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
+                // 메인 저장 시에는 토스트 메시지 표시하지 않음 (skipLoading = true)
+                if (!skipLoading) {
+                    if (sketchData.sketches.length === 0) {
+                        this.showSuccessToast('세미나 스케치가 모두 삭제되었습니다.');
+                    } else {
+                        this.showSuccessToast('세미나 스케치가 성공적으로 저장되었습니다.');
+                    }
                 }
                 // 스케치 저장 후 버튼 상태 업데이트
                 this.toggleQuickSaveSketchButton();
@@ -5366,7 +5374,9 @@ class SeminarPlanningApp {
             console.error('스케치 저장 오류:', error);
             this.showErrorToast('스케치 저장 중 오류가 발생했습니다.');
         } finally {
-            this.showLoading(false);
+            if (!skipLoading) {
+                this.showLoading(false);
+            }
         }
     }
 
