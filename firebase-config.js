@@ -215,10 +215,14 @@ async function loadData() {
                 });
                 
                 // JavaScript에서 정렬: 세미나 개최 회차 내림차순, 일시 내림차순
+                console.log('🔍 정렬 전 데이터:', plans.map(p => ({ session: p.session, datetime: p.datetime })));
+                
                 plans.sort((a, b) => {
                     // 세미나 개최 회차 비교 (숫자로 변환하여 비교)
-                    const sessionA = parseInt(a.session) || 0;
-                    const sessionB = parseInt(b.session) || 0;
+                    const sessionA = extractSessionNumber(a.session);
+                    const sessionB = extractSessionNumber(b.session);
+                    
+                    console.log(`🔍 정렬 비교: "${a.session}"(${sessionA}) vs "${b.session}"(${sessionB})`);
                     
                     if (sessionA !== sessionB) {
                         return sessionB - sessionA; // 내림차순
@@ -230,8 +234,11 @@ async function loadData() {
                     return dateB - dateA; // 내림차순
                 });
                 
+                console.log('🔍 정렬 후 데이터:', plans.map(p => ({ session: p.session, datetime: p.datetime })));
+                
                 // 가장 최신 데이터 반환
                 const latestPlan = plans[0];
+                console.log('🔍 선택된 최신 데이터:', { session: latestPlan.session, datetime: latestPlan.datetime });
                 return { success: true, data: latestPlan, id: latestPlan.id };
             } else {
                 return { success: false, message: '저장된 데이터가 없습니다.' };
@@ -346,8 +353,8 @@ async function loadAllPlans() {
             // JavaScript에서 정렬: 세미나 개최 회차 내림차순, 일시 내림차순
             plans.sort((a, b) => {
                 // 세미나 개최 회차 비교 (숫자로 변환하여 비교)
-                const sessionA = parseInt(a.session) || 0;
-                const sessionB = parseInt(b.session) || 0;
+                const sessionA = extractSessionNumber(a.session);
+                const sessionB = extractSessionNumber(b.session);
                 
                 if (sessionA !== sessionB) {
                     return sessionB - sessionA; // 내림차순
@@ -366,6 +373,15 @@ async function loadAllPlans() {
         console.error('모든 계획 불러오기 오류:', error);
         return { success: false, message: '계획 목록 불러오기 중 오류가 발생했습니다: ' + error.message };
     }
+}
+
+// 회차 문자열에서 숫자 추출 함수
+function extractSessionNumber(session) {
+    if (!session) return 0;
+    
+    // "제 4회", "제 5회", "제10회" 등의 패턴에서 숫자 추출
+    const match = session.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
 }
 
 // Firebase 설정 확인
