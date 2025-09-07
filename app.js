@@ -116,17 +116,16 @@ class SeminarPlanningApp {
         document.getElementById('resetBtn').addEventListener('click', () => this.resetForm());
         
         // 저장 버튼
-        document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
+         document.getElementById('saveBtn').addEventListener('click', () => this.saveData());
         
-        // 삭제 버튼
-        document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
+        // 삭제 버튼 
+         document.getElementById('deleteBtn').addEventListener('click', () => this.deleteData());
         
         // 일괄삭제 버튼
         //document.getElementById('bulkDeleteBtn').addEventListener('click', () => this.bulkDeleteData());
         
         // 조회 버튼
-        document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
-        
+         document.getElementById('loadBtn').addEventListener('click', () => this.showSearchModal());
         
         // 시간 계획 행 추가
         document.getElementById('addTimeRow').addEventListener('click', () => this.addTimeRow());
